@@ -361,8 +361,14 @@ def render_tab(bars,
     total_height = n_lines * line_h + (4 if flush else 30)
     # The song page's per-bar columns suppress the TAB gutter and shrink the
     # side padding so wrapped bars sit nearly flush against each other.
-    pad_left = pad_lr if pad_lr is not None else 22
-    pad_right = pad_lr if pad_lr is not None else 22
+    # pad_lr may be a single value or a (left, right) pair — a section's
+    # opening column keeps a left gutter for the TAB clef while staying
+    # flush on its right edge.
+    if isinstance(pad_lr, (tuple, list)):
+        pad_left, pad_right = pad_lr
+    else:
+        pad_left = pad_lr if pad_lr is not None else 22
+        pad_right = pad_lr if pad_lr is not None else 22
     grid_w = width - pad_left - pad_right
     string_step = 13
     grid_h = 5 * string_step
@@ -404,8 +410,9 @@ def render_tab(bars,
 
         # Staff lines stop at the last bar of THIS line (so partial last lines
         # don't have ghost rules hanging off to the right). Flush columns run
-        # them edge to edge instead, so wrapped neighbours join seamlessly.
-        line_start_x = 0 if flush else pad_left
+        # them edge to edge instead, so wrapped neighbours join seamlessly —
+        # except behind a TAB clef, where the lines start after the gutter.
+        line_start_x = pad_left if (flush and show_tab_letters) else (0 if flush else pad_left)
         line_end_x = width if flush else bar_x_starts[-1]
         for si in range(6):
             y = line_y_top + pad_top + si * string_step

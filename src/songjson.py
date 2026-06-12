@@ -199,7 +199,11 @@ def render_tracks(tracks, start_bar=1):
         # compact; clamped so even the busiest solo bar fits a phone screen.
         densest = max((len(bars[bi]) for bars, _l, _lab in tracks
                        if bi < len(bars)), default=4)
-        col_w = max(150, min(340, densest * 17 + 24))
+        # The section's opening column carries the TAB clef in a left gutter
+        # (every section starts a system); later wrap points are decided by
+        # CSS at display time, so only this one is knowable at build time.
+        clef = bi == 0
+        col_w = max(150, min(340, densest * 17 + 24)) + (24 if clef else 0)
         staves = []
         for vi, (bars, _labels, _label) in enumerate(tracks):
             if bi >= len(bars):
@@ -218,8 +222,8 @@ def render_tracks(tracks, start_bar=1):
                 show_bar_numbers=(vi == 0),
                 start_bar=start_bar + bi,
                 note_seq_start=starts[vi],
-                show_tab_letters=False,
-                pad_lr=6,
+                show_tab_letters=clef,
+                pad_lr=(30, 6) if clef else 6,
                 pad_top=p_top,
                 flush=True,
                 end_double=(bi == n_bars - 1),
