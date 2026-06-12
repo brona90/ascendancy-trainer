@@ -161,6 +161,10 @@ def _read_font(name):
 
 FONT_REGULAR = _read_font('font_regular.b64')
 FONT_ITALIC = _read_font('font_italic.b64')
+# UnifrakturCook 700 — a blackletter display face for the titles and section
+# headings, so the site reads like a metal record sleeve rather than a generic
+# serif. Body, captions, pills and tab stay in Fraunces for legibility.
+FONT_BLACKLETTER = _read_font('font_blackletter.b64')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -181,6 +185,13 @@ PAGE_CSS = r'''
   font-weight: 100 900;
   font-display: swap;
   src: url(data:font/woff2;base64,__FONT_ITALIC__) format('woff2');
+}
+@font-face {
+  font-family: 'Blackletter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(data:font/woff2;base64,__FONT_BLACKLETTER__) format('woff2');
 }
 :root {
   /* Black + blood-red + grey. Light "paper" cards carry the notation. */
@@ -263,14 +274,13 @@ body {
   color: var(--accent); margin: 0 0 1.25rem; padding-left: 0.4em;
 }
 .title-block h1 {
-  font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 50, 'WONK' 1;
-  font-size: clamp(2.6rem, 9vw, 5.4rem); line-height: 0.95;
-  letter-spacing: -0.03em; margin: 0; color: var(--ink);
+  font-family: 'Blackletter', 'Fraunces', serif; font-weight: 700;
+  font-size: clamp(2.7rem, 9.5vw, 5.6rem); line-height: 1.02;
+  letter-spacing: 0; margin: 0; color: var(--ink);
 }
 .title-block h1 em {
-  font-style: italic; color: var(--sage);
-  font-variation-settings: 'opsz' 144, 'wght' 500, 'SOFT' 100, 'WONK' 1;
-  text-shadow: 0 0 30px rgba(199, 30, 42, 0.18);
+  font-style: normal; color: var(--sage);
+  text-shadow: 0 0 30px rgba(199, 30, 42, 0.25);
 }
 .title-block .subtitle {
   font-style: italic;
@@ -630,10 +640,11 @@ body {
 
 .section-heading {
   margin: 3rem 0 0.85rem;
-  font-size: clamp(1.6rem, 3.2vw, 2rem);
-  font-variation-settings: 'opsz' 72, 'wght' 600, 'SOFT' 80, 'WONK' 1;
+  font-family: 'Blackletter', 'Fraunces', serif; font-weight: 700;
+  font-size: clamp(1.7rem, 3.4vw, 2.2rem);
   color: var(--ink);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  line-height: 1.15;
   position: relative;
   padding-left: 0.95rem;
 }
@@ -646,8 +657,7 @@ body {
   border-radius: 2px;
 }
 .section-heading em {
-  color: var(--sage); font-style: italic;
-  font-variation-settings: 'opsz' 72, 'wght' 500, 'SOFT' 100, 'WONK' 1;
+  color: var(--sage); font-style: normal;
 }
 .section-blurb {
   color: var(--ink-soft); max-width: 62ch; margin: 0 0 1.75rem;
@@ -662,11 +672,11 @@ body {
   margin: 3rem 0 0;
 }
 .next-step h2 {
-  margin: 0 0 0.75rem; font-size: 1.45rem;
-  font-variation-settings: 'opsz' 36, 'wght' 600;
-  color: var(--ink);
+  margin: 0 0 0.75rem; font-size: 1.7rem;
+  font-family: 'Blackletter', 'Fraunces', serif; font-weight: 700;
+  line-height: 1.15; color: var(--ink);
 }
-.next-step h2 em { color: var(--sage); font-style: italic; }
+.next-step h2 em { color: var(--sage); font-style: normal; }
 .next-step p { margin: 0 0 0.8rem; color: var(--ink-soft); }
 .next-step p em { color: var(--sage); font-style: italic; }
 .next-step p strong { color: var(--ink); font-variation-settings: 'opsz' 14, 'wght' 600; }
@@ -947,7 +957,7 @@ svg.tab text, svg.tab-rich text, svg.fretboard text {
   .song-tab-sheet { border: 1px solid #aaa; border-left: 3px solid #888; background: white; }
   .song-tag { border-color: #bbb; color: #333; background: none; }
 }
-'''.replace('__FONT_REGULAR__', FONT_REGULAR).replace('__FONT_ITALIC__', FONT_ITALIC).replace('__DRIP_URI__', DRIP_DATA_URI)
+'''.replace('__FONT_REGULAR__', FONT_REGULAR).replace('__FONT_ITALIC__', FONT_ITALIC).replace('__FONT_BLACKLETTER__', FONT_BLACKLETTER).replace('__DRIP_URI__', DRIP_DATA_URI)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2145,17 +2155,17 @@ INDEX_CSS = r'''
   margin: 0 0 0.5rem;
 }
 .index-card h2 {
-  margin: 0 0 0.4rem; font-size: 1.3rem;
-  font-variation-settings: 'opsz' 36, 'wght' 600;
-  color: var(--card-ink);
+  margin: 0 0 0.4rem; font-size: 1.5rem;
+  font-family: 'Blackletter', 'Fraunces', serif; font-weight: 700;
+  line-height: 1.1; color: var(--card-ink);
 }
-.index-card h2 em { color: var(--accent-dark); font-style: italic; }
+.index-card h2 em { color: var(--accent-dark); font-style: normal; }
 .index-card p { margin: 0; font-size: 0.92rem; color: var(--card-ink-soft); line-height: 1.45; }
 .section-title {
-  margin: 2.5rem 0 1rem; color: var(--ink); font-size: 1.25rem;
-  font-variation-settings: 'opsz' 36, 'wght' 500;
+  margin: 2.5rem 0 1rem; color: var(--ink); font-size: 1.5rem;
+  font-family: 'Blackletter', 'Fraunces', serif; font-weight: 700;
 }
-.section-title em { color: var(--sage); font-style: italic; }
+.section-title em { color: var(--sage); font-style: normal; }
 .index-intro {
   max-width: 56ch; color: var(--ink-soft); margin: 0 auto 2.5rem;
   text-align: center; font-size: 1.05rem;
