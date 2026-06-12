@@ -16,11 +16,10 @@ D2); the diagram dots and the matching tab notes light up in time with
 the audio.
 
 > **Note on content:** the eight skill pages are original etudes written
-> for practice. The **Full song** page is different: it engraves the tab
-> in `src/song_tab.txt` as proper notation so a student can learn the
-> actual piece section by section. Use it alongside the official Ultimate
-> Guitar tab, which remains the source of truth for the fine detail —
-> our playback infers rhythm and some techniques.
+> for practice. The **Full song** page is different: it engraves the
+> structured tab in `src/song.json` (every guitar part, with exact
+> durations, rests, ties and techniques — nothing inferred) as proper
+> notation so a student can learn the actual piece section by section.
 
 ## Pages
 
@@ -43,7 +42,9 @@ the audio.
   chunk→ladder→seams→assemble method, and how to work with the
   official tab.
 - **Full song** — the complete piece, engraved section by section from
-  `src/song_tab.txt`, with chords/tempo/guitar-count chips and playback.
+  `src/song.json` with every guitar part stacked like a score, tempo /
+  meter / guitar-count chips, per-guitar playback and a full-band
+  Together mix.
 - **Daily routine** — a 30-minute lap through everything, ending
   inside the actual song.
 
@@ -92,8 +93,9 @@ seanSong/
 │   ├── render.py                  # shared template, CSS, JS, audio synth
 │   ├── fretboard.py               # chord-box and scale-box SVG (drop D names)
 │   ├── tab.py                     # tab notation SVG
-│   ├── songtab.py                 # ASCII tab → engraved notation (full-song page)
-│   ├── song_tab.txt               # the song's tab, engraved by the song page
+│   ├── songjson.py                # structured tab JSON → engraved notation (full-song page)
+│   ├── song.json                  # the song's tab data, engraved by the song page
+│   ├── songtab.py                 # stacked-score layout (+ legacy ASCII-tab parser)
 │   ├── font_regular.b64 / font_italic.b64
 │   └── exercises/
 │       ├── _common.py             # shared drop-D helpers (not a page)

@@ -299,6 +299,7 @@ def _draw_event(out, ev, x_left, x_right, string_step, pad_top):
     if kind == 'chord':
         _, notes, opts = ev
         accent = opts.get('accent', False)
+        ghost = opts.get('ghost', False)
         seq_idx = opts.get('_seq_idx')
         attrs = ''
         if seq_idx is not None:
@@ -306,7 +307,7 @@ def _draw_event(out, ev, x_left, x_right, string_step, pad_top):
         out.append(f'<g class="tab-note tab-chord"{attrs}>')
         for sn, fr in notes:
             y = pad_top + (sn - 1) * string_step
-            _draw_note_text(out, x_center, y, str(fr), accent=accent)
+            _draw_note_text(out, x_center, y, str(fr), accent=accent, ghost=ghost)
         info['notes'] = [(sn, fr) for sn, fr in notes]
         info['note_x'] = x_center
         dur = opts.get('dur', 1.0)

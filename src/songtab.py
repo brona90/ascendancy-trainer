@@ -340,6 +340,17 @@ def render_section(body, bars_per_line=4):
     """Engrave a whole section body as a stacked score + audio.
 
     Returns (html, audio_dict, together_dict) or raises ParseError.
+    """
+    tracks = [t for t in _voice_tracks(split_groups(body)) if t[0]]
+    if not tracks:
+        raise ParseError('no notes parsed')
+    return render_tracks(tracks, bars_per_line)
+
+
+def render_tracks(tracks, bars_per_line=4):
+    """Engrave per-guitar tracks of (bars, labels, label) as a stacked score.
+
+    Returns (html, audio_dict, together_dict).
 
     Layout is a real score: the guitars are stacked and aligned, four bars to a
     row, then the next four bars in the row below — so you read all the parts
@@ -354,10 +365,6 @@ def render_section(body, bars_per_line=4):
     timeline (the full band) and carries, per beat, the data-i of every note
     that sounds there, so it lights them all at once across the stacked staves.
     """
-    tracks = [t for t in _voice_tracks(split_groups(body)) if t[0]]
-    if not tracks:
-        raise ParseError('no notes parsed')
-
     # Per-voice base index (track-major) — this is the order `audio` plays in
     # and the data-i each voice's notes carry, regardless of the row layout.
     bases, acc = [], 0
@@ -384,7 +391,7 @@ def render_section(body, bars_per_line=4):
             start = bases[vi] + sum(len(b) for b in bars[:lo])
             staves.append(render_tab(
                 chunk,
-                chord_labels=labels[lo:lo + bars_per_line],
+                chord_labels=labels[lo:lo + bars_per_line] if labels else None,
                 bars_per_line=bars_per_line,
                 width=row_w,
                 beat_unit=4,
@@ -451,15 +458,19 @@ def _together_sequence(base_bars):
 
 
 def _extend_audio(seq, bars):
-    """Append one audio slot per rendered note/chord, in render order.
+    """Append one audio slot per rendered event, in render order.
 
-    Ghosts (let-ring) and dead 'x' notes become silent rests so the array stays
-    index-aligned with the engraved notes while not re-triggering held strings.
+    Ghosts (let-ring), ties and dead 'x' notes become silent rests so the array
+    stays index-aligned with the engraved notes while not re-triggering held
+    strings. Explicit rest events get a slot too — render_tab advances data-i
+    on every event, so the audio array must as well.
     """
     for bar in bars:
         for ev in bar:
             kind = ev[0]
-            if kind == 'note':
+            if kind == 'rest':
+                seq.append({"rest": True, "dur": ev[-1].get('dur', 0.5)})
+            elif kind == 'note':
                 _, s, f, opts = ev
                 dur = opts.get('dur', 0.5)
                 if opts.get('ghost') or not isinstance(f, int):
