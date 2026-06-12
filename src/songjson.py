@@ -27,8 +27,7 @@ the app's 1-indexed strings here, in one place.
 import json
 import os
 
-from tab import n, c, r
-from songtab import render_tracks
+from tab import n, c, r, render_tab
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_PATH = os.path.join(SRC_DIR, 'song.json')
@@ -163,6 +162,146 @@ def _track_bars(track, lo, hi):
 def _has_sound(bars):
     return any(ev[0] in ('note', 'chord') and not ev[-1].get('ghost')
                for bar in bars for ev in bar)
+
+
+def render_tracks(tracks, bars_per_line=4):
+    """Engrave per-guitar tracks of (bars, labels, label) as a stacked score.
+
+    Returns (html, audio_dict, together_dict).
+
+    Layout is a real score: the guitars are stacked and aligned, four bars to a
+    row, then the next four bars in the row below — so you read all the parts
+    that sound together (e.g. the solo's two rhythm guitars under the lead) the
+    way the original tab stacks them. Every stave shares one pixels-per-bar so a
+    note is the same size everywhere, and rows scroll sideways on a narrow
+    screen rather than being squeezed.
+
+    `audio` plays the parts one guitar at a time (each guitar's whole part in
+    order) and its note indices line up with the engraved tab-notes' data-i, so
+    the playhead lights the right note. `together` layers all the guitars on one
+    timeline (the full band) and carries, per beat, the data-i of every note
+    that sounds there, so it lights them all at once across the stacked staves.
+    """
+    # Per-voice base index (track-major) — this is the order `audio` plays in
+    # and the data-i each voice's notes carry, regardless of the row layout.
+    bases, acc = [], 0
+    for bars, _labels, _label in tracks:
+        bases.append(acc)
+        acc += sum(len(b) for b in bars)
+
+    # One pixels-per-bar for the whole section keeps bars aligned across the
+    # stacked staves and notes a uniform size; denser sections get more room.
+    densest = max((len(b) for bars, _l, _lab in tracks for b in bars), default=4)
+    bar_width = max(220, min(360, densest * 17))
+    row_w = bars_per_line * bar_width
+    n_rows = max((len(bars) + bars_per_line - 1) // bars_per_line
+                 for bars, _l, _lab in tracks)
+
+    rows_html = []
+    for row in range(n_rows):
+        lo = row * bars_per_line
+        staves = []
+        for vi, (bars, labels, label) in enumerate(tracks):
+            chunk = bars[lo:lo + bars_per_line]
+            if not chunk:
+                continue
+            start = bases[vi] + sum(len(b) for b in bars[:lo])
+            staves.append(render_tab(
+                chunk,
+                chord_labels=labels[lo:lo + bars_per_line] if labels else None,
+                bars_per_line=bars_per_line,
+                width=row_w,
+                beat_unit=4,
+                title=label or None if row == 0 else None,
+                show_bar_numbers=False,
+                note_seq_start=start,
+                fixed_px=True,
+            ))
+        if staves:
+            rows_html.append('<div class="song-row">' + ''.join(staves) + '</div>')
+
+    seq = []
+    for bars, _labels, _label in tracks:
+        _extend_audio(seq, bars)
+    audio = {"type": "sequence", "notes": seq, "gain": 0.42} if seq else None
+    together = (_together_sequence(list(zip(bases, (t[0] for t in tracks))))
+                if len(tracks) > 1 else None)
+    return '<div class="song-staves">' + ''.join(rows_html) + '</div>', audio, together
+
+
+def _together_sequence(base_bars):
+    """Layer every voice on one timeline so the section plays as a full band.
+
+    `base_bars` is a list of (base_index, bars) per voice — base_index is the
+    data-i the voice's first note carries. Notes on the same beat across
+    guitars line up; we collect every onset, emitting one chord (all strings
+    sounding there) plus the data-i of every contributing note so the player
+    can light them all at once.
+    """
+    onsets = {}   # beat -> {'sf': [(s,f)...], 'idx': set()}
+    for base, bars in base_bars:
+        beat, k = 0.0, base
+        for bar in bars:
+            for ev in bar:
+                dur = ev[-1].get('dur', 0.5)
+                members = []
+                if ev[0] == 'note':
+                    _, s, f, o = ev
+                    if not o.get('ghost') and isinstance(f, int):
+                        members = [(s, f)]
+                elif ev[0] == 'chord':
+                    _, notes, o = ev
+                    if not o.get('ghost'):
+                        members = [(s, f) for s, f in notes if isinstance(f, int)]
+                if members:
+                    m = onsets.setdefault(round(beat, 3), {'sf': [], 'idx': set()})
+                    m['sf'].extend(members)
+                    m['idx'].add(k)
+                beat += dur
+                k += 1
+    if not onsets:
+        return None
+    times = sorted(onsets)
+    out = []
+    for i, b in enumerate(times):
+        dur = max(0.12, (times[i + 1] if i + 1 < len(times) else b + 1.0) - b)
+        seen, uniq = set(), []
+        for sf in onsets[b]['sf']:
+            if sf not in seen:
+                seen.add(sf)
+                uniq.append([sf[0], sf[1]])
+        out.append({"chord": uniq, "dur": dur, "idx": sorted(onsets[b]['idx'])})
+    return {"type": "sequence", "notes": out, "gain": 0.4}
+
+
+def _extend_audio(seq, bars):
+    """Append one audio slot per rendered event, in render order.
+
+    Ghosts (ties / let-ring) become silent rests so the array stays
+    index-aligned with the engraved notes while not re-triggering held
+    strings. Explicit rest events get a slot too — render_tab advances
+    data-i on every event, so the audio array must as well.
+    """
+    for bar in bars:
+        for ev in bar:
+            kind = ev[0]
+            if kind == 'rest':
+                seq.append({"rest": True, "dur": ev[-1].get('dur', 0.5)})
+            elif kind == 'note':
+                _, s, f, opts = ev
+                dur = opts.get('dur', 0.5)
+                if opts.get('ghost') or not isinstance(f, int):
+                    seq.append({"rest": True, "dur": dur})
+                else:
+                    seq.append({"string": s, "fret": f, "dur": dur})
+            elif kind == 'chord':
+                _, notes, opts = ev
+                dur = opts.get('dur', 0.5)
+                playable = [(s, f) for s, f in notes if isinstance(f, int)]
+                if opts.get('ghost') or not playable:
+                    seq.append({"rest": True, "dur": dur})
+                else:
+                    seq.append({"chord": playable, "dur": dur})
 
 
 def section_cards(data=None, bars_per_line=4):
