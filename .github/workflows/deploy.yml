@@ -36,10 +36,11 @@ jobs:
       - name: Build site
         run: python3 build.py
 
+      # Pages is enabled on the repo with "GitHub Actions" as the source, so
+      # this just reads the site config (no enablement — the workflow token
+      # can't create the Pages site itself).
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
