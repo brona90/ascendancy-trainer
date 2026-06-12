@@ -1,12 +1,13 @@
 """Drop D — get in tune, then own the one-finger power chord.
 
-Ascendancy (like most of the album it names) lives in drop D. Before
-anything else: tune the low E down a whole step and learn how that
-remaps the bottom three strings.
+Ascendancy (like most of the album it names) lives in drop D — but the
+song's key is F# minor, with the home barre at fret 4. Before anything
+else: tune the low E down a whole step and learn how that remaps the
+bottom three strings.
 """
 
-from _common import (n, c, tab_card, PC_ROLES, D5_SHAPE, F5_SHAPE, G5_SHAPE,
-                     A5_SHAPE, C5_SHAPE, D5, F5, G5, A5, BB5, C5)
+from _common import (n, c, tab_card, PC_ROLES, D5_SHAPE, FS5_SHAPE, GS5_SHAPE,
+                     A5_SHAPE, B5_SHAPE, CS5_SHAPE, D5, FS5, GS5, A5, B5, CS5)
 
 
 # ── Card 1: tuning check ─────────────────────────────────────────────
@@ -28,34 +29,38 @@ TUNING_LABELS = ['Octave check', 'Unison check']
 
 
 # ── Card 2: the one-finger power chord ───────────────────────────────
+# The song's actual vocabulary: Ascendancy is in F# minor, and these six
+# frets are every position the drills below touch.
 PC_CHORDS = [
     ('D5 — open', D5_SHAPE, PC_ROLES),
-    ('F5 — fret 3', F5_SHAPE, PC_ROLES),
-    ('G5 — fret 5', G5_SHAPE, PC_ROLES),
+    ('F♯5 — fret 4', FS5_SHAPE, PC_ROLES),
+    ('G♯5 — fret 6', GS5_SHAPE, PC_ROLES),
     ('A5 — fret 7', A5_SHAPE, PC_ROLES),
-    ('C5 — fret 10', C5_SHAPE, PC_ROLES),
+    ('B5 — fret 9', B5_SHAPE, PC_ROLES),
+    ('C♯5 — fret 11', CS5_SHAPE, PC_ROLES),
 ]
 PC_BARS = [
-    [c(D5, 2.0, accent=True), c(F5, 2.0)],
-    [c(G5, 2.0), c(A5, 2.0)],
-    [c(C5, 4.0, accent=True)],
+    [c(D5, 2.0, accent=True), c(FS5, 2.0, accent=True)],
+    [c(GS5, 2.0), c(A5, 2.0)],
+    [c(B5, 2.0), c(CS5, 2.0)],
 ]
-PC_LABELS = ['D5 · F5', 'G5 · A5', 'C5']
+PC_LABELS = ['D5 · F♯5', 'G♯5 · A5', 'B5 · C♯5']
 
 
 # ── Card 3: power-chord slide drill ──────────────────────────────────
-# Original drill: walk the one-finger shape through the D minor chord
-# tones the song's riffs orbit — D, F, G, A, C, B♭.
+# Walk the one-finger shape through the positions the song actually
+# uses: up D5 → F♯5 → G♯5 → A5, leap to C♯5, walk back down, then run
+# the bridge motion F♯5–G♯5–A5–G♯5 and park on home.
 SLIDE_BARS = [
-    [c(D5, 0.5, accent=True), c(D5, 0.5), c(F5, 0.5, accent=True), c(F5, 0.5),
-     c(G5, 0.5, accent=True), c(G5, 0.5), c(A5, 0.5, accent=True), c(A5, 0.5)],
-    [c(C5, 0.5, accent=True), c(C5, 0.5), c(BB5, 0.5, accent=True), c(BB5, 0.5),
-     c(A5, 0.5, accent=True), c(A5, 0.5), c(G5, 0.5, accent=True), c(G5, 0.5)],
-    [c(F5, 0.5, accent=True), c(F5, 0.5), c(G5, 0.5), c(G5, 0.5),
-     c(A5, 0.5), c(A5, 0.5), c(F5, 0.5), c(F5, 0.5)],
-    [c(D5, 4.0, accent=True)],
+    [c(D5, 0.5, accent=True), c(D5, 0.5), c(FS5, 0.5, accent=True), c(FS5, 0.5),
+     c(GS5, 0.5, accent=True), c(GS5, 0.5), c(A5, 0.5, accent=True), c(A5, 0.5)],
+    [c(CS5, 0.5, accent=True), c(CS5, 0.5), c(A5, 0.5, accent=True), c(A5, 0.5),
+     c(GS5, 0.5, accent=True), c(GS5, 0.5), c(FS5, 0.5, accent=True), c(FS5, 0.5)],
+    [c(FS5, 0.5, accent=True), c(FS5, 0.5), c(GS5, 0.5), c(GS5, 0.5),
+     c(A5, 0.5), c(A5, 0.5), c(GS5, 0.5), c(GS5, 0.5)],
+    [c(FS5, 4.0, accent=True)],
 ]
-SLIDE_LABELS = ['D5 F5 G5 A5', 'C5 B♭5 A5 G5', 'F5 G5 A5 F5', 'D5']
+SLIDE_LABELS = ['D5 F♯5 G♯5 A5', 'C♯5 A5 G♯5 F♯5', 'F♯5 G♯5 A5 G♯5', 'F♯5']
 
 
 EXERCISE = {
@@ -74,9 +79,10 @@ EXERCISE = {
       become a <em>movable one-finger power chord</em>, which is what makes
       the fast riffing in this song physically possible, and the open low D
       gives the galloping pedal tone its growl.</p>
-      <p>Tune by ear with the two checks below, or use a tuner. Then drill
-      the one-finger shape until sliding between frets feels like pointing
-      at a note.</p>
+      <p>The song itself is in <strong>F&#9839; minor</strong> — fret 4 is
+      <em>home</em>, the F&#9839;5 barre you'll live on. Tune by ear with
+      the two checks below, or use a tuner. Then drill the one-finger
+      shape until sliding between frets feels like pointing at a note.</p>
     """,
     "intro_pills": [
         ("Why drop D", "Power chords collapse to one finger — barre strings 6–4 at any fret."),
@@ -102,16 +108,16 @@ EXERCISE = {
             "layout": "full",
             "cards": [
                 tab_card(
-                    "Shape", "Five home positions",
-                    "D5 open · F5 fret 3 · G5 fret 5 · A5 fret 7 · C5 fret 10",
+                    "Shape", "The song's six positions",
+                    "D5 open · F♯5 fret 4 · G♯5 fret 6 · A5 fret 7 · B5 fret 9 · C♯5 fret 11",
                     PC_BARS, PC_LABELS,
-                    "These five frets — open, 3, 5, 7, 10 — are where the song's rhythm parts live. Strike each chord once and let it ring. <strong>Mute strings 3–2–1</strong> with the underside of your barre finger.",
+                    "These six frets — open, 4, 6, 7, 9, 11 — are where the song's rhythm parts live, and <strong>fret 4 (F&#9839;5) is home</strong>. Strike each chord once and let it ring. <strong>Mute strings 3–2–1</strong> with the underside of your barre finger.",
                     bars_per_line=3, width=900, chords=PC_CHORDS),
                 tab_card(
                     "Drill", "Power-chord slide drill",
                     "Eighth notes · two hits per fret · one finger does all the work",
                     SLIDE_BARS, SLIDE_LABELS,
-                    "Keep light contact with the strings while sliding — don't lift off. Accent the first hit at each new fret. When the moves are clean at 100&nbsp;bpm, this drill <em>is</em> the mobility the verse riffs need.",
+                    "Bar 1 starts on the <em>open</em> D5 — there's no finger to slide from, so just drop the barre on at fret 4; between the fretted shapes, keep light contact with the strings and don't lift off. Accent the first hit at each new fret, and <em>say the chord names aloud as you land them</em>. Bar 3 is the bridge walk — F&#9839;5, G&#9839;5, A5, G&#9839;5. Clean at 100&nbsp;bpm, this drill <em>is</em> the mobility the riffs need.",
                     bars_per_line=4, width=900),
             ],
         },
@@ -124,7 +130,7 @@ EXERCISE = {
         "items": [
             ("Every session", "Re-check the octave before practising. Drop-tuned strings drift more than standard."),
             ("Grip check", "One finger, flat barre, thumb low behind the neck. If your hand aches, you're squeezing too hard."),
-            ("Name the frets", "Say the chord names out loud while running the slide drill — D, F, G, A, C, B♭. The song's riffs are spelled from these."),
+            ("Name the frets", "Say the chord names out loud while running the slide drill — D, F♯, G♯, A, B, C♯. The song's riffs are spelled from these."),
         ],
     },
     "closing": "One string down, one finger across. The doorway to the whole song.",

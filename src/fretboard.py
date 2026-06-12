@@ -19,7 +19,7 @@ OPEN_STRING_PC = {6: 2, 5: 9, 4: 2, 3: 7, 2: 11, 1: 4}
 
 
 def note_at(string, fret):
-    """Return the note name (pitch class only) at string `string` (1=high E, 6=low E), fret `fret`."""
+    """Return the note name (pitch class only) at string `string` (1=high E, 6=low D — drop D), fret `fret`."""
     return SEMITONE_NAMES[(OPEN_STRING_PC[string] + fret) % 12]
 
 
@@ -193,10 +193,10 @@ def chord_strip(chords, mini=True):
             roles = None
         w, h = (140, 175) if mini else (200, 240)
         box = chord_box(shape, role_labels=roles, width=w, height=h)
-        shape_json = json.dumps(shape, separators=(',', ':'))
+        shape_json = html.escape(json.dumps(shape, separators=(',', ':')), quote=True)
         items.append(
-            f'<div class="chord-strip-item" data-shape=\'{shape_json}\'>'
-            f'<div class="chord-strip-label">{label}</div>'
+            f'<div class="chord-strip-item" data-shape="{shape_json}">'
+            f'<div class="chord-strip-label">{html.escape(str(label))}</div>'
             f'{box}'
             f'</div>'
         )

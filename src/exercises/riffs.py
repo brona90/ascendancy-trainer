@@ -1,92 +1,102 @@
 """Riff vocabulary — original etudes in the song's dialect.
 
 These are NOT the song's riffs. They are practice etudes built from the
-same devices — open-D pedal point, chromatic low-string runs, syncopated
-breakdown stabs, and clean arpeggiated chords — so that when you read
-the real parts from the tab, your hands already speak the language.
+same devices — the fretted F♯ pedal point, chromatic low-string crawls,
+syncopated break stabs, and clean arpeggiated chords — so that when you
+read the real parts from the tab, your hands already speak the language.
 """
 
-from _common import (n, c, r, tab_card, PC_ROLES, D5_SHAPE, F5_SHAPE,
-                     G5_SHAPE, A5_SHAPE, C5_SHAPE, D5, F5, G5, A5, BB5, C5)
+from _common import (n, c, r, tab_card, PC_ROLES, D5_SHAPE, FS5_SHAPE,
+                     B5_SHAPE, CS5_SHAPE, D5, FS5, B5, CS5)
 
 
 def chug(dur=0.5, accent=False):
-    return n(6, 0, dur, pm=True, accent=accent)
+    return n(6, 4, dur, pm=True, accent=accent)
+
+
+def gallop(accent=True):
+    # One beat of gallop: eighth + two sixteenths on the F# pedal.
+    return [chug(0.5, accent), chug(0.25), chug(0.25)]
 
 
 # ── Etude 1: pedal-point riff ────────────────────────────────────────
-# Open-D pedal with chord stabs dropped between the chugs.
+# Fretted F♯ pedal (string 6, fret 4) with chord punches dropped
+# between the gallops — the verse engine of the song.
 PEDAL_BARS = [
-    [chug(0.5, True), chug(0.5), c(F5, 0.5, accent=True), chug(0.5),
-     chug(0.5), chug(0.5), c(G5, 0.5, accent=True), chug(0.5)],
-    [chug(0.5, True), chug(0.5), c(A5, 0.5, accent=True), chug(0.5),
-     chug(0.5), chug(0.5), c(C5, 0.5, accent=True), c(BB5, 0.5, accent=True)],
-    [chug(0.5, True), chug(0.5), c(F5, 0.5, accent=True), chug(0.5),
-     chug(0.5), chug(0.5), c(G5, 0.5, accent=True), chug(0.5)],
-    [c(F5, 1.0, accent=True), c(G5, 1.0, accent=True), c(D5, 2.0, accent=True)],
+    gallop() + gallop() +
+    [c(D5, 0.5, accent=True), chug(0.5), c(B5, 0.5, accent=True), chug(0.5)],
+    gallop() + gallop() +
+    [c(CS5, 1.0, accent=True), c(B5, 0.5, accent=True), chug(0.5)],
+    gallop() + gallop() +
+    [c(D5, 0.5, accent=True), chug(0.5), c(B5, 0.5, accent=True), chug(0.5)],
+    [c(D5, 1.0, accent=True), c(CS5, 1.0, accent=True), c(FS5, 2.0, accent=True)],
 ]
-PEDAL_LABELS = ['D ped · F5 G5', '· A5 C5 B♭5', '· F5 G5', 'F5 G5 D5']
+PEDAL_LABELS = ['F♯ ped · D5 B5', '· C♯5 B5', '· D5 B5', 'D5 C♯5 F♯5']
 
 PEDAL_CHORDS = [
-    ('D5 — pedal', D5_SHAPE, PC_ROLES),
-    ('F5', F5_SHAPE, PC_ROLES),
-    ('G5', G5_SHAPE, PC_ROLES),
-    ('A5', A5_SHAPE, PC_ROLES),
-    ('C5', C5_SHAPE, PC_ROLES),
+    ('F♯5 — pedal', FS5_SHAPE, PC_ROLES),
+    ('D5', D5_SHAPE, PC_ROLES),
+    ('B5', B5_SHAPE, PC_ROLES),
+    ('C♯5', CS5_SHAPE, PC_ROLES),
 ]
 
 
-# ── Etude 2: chromatic low-string run ────────────────────────────────
-# The thrash device: palm-muted single notes crawling chromatically on
-# the dropped string, resolving back to the open pedal.
+# ── Etude 2: chromatic low-string crawl ──────────────────────────────
+# The thrash device: palm-muted single notes crawling down the low
+# string a half-step at a time, resolving into the fretted F♯ pedal.
 CHROMA_BARS = [
-    [n(6, 5, 0.5, pm=True, accent=True), n(6, 5, 0.5, pm=True),
-     n(6, 4, 0.5, pm=True), n(6, 4, 0.5, pm=True),
-     n(6, 3, 0.5, pm=True, accent=True), n(6, 3, 0.5, pm=True),
-     n(6, 2, 0.5, pm=True), n(6, 2, 0.5, pm=True)],
-    [n(6, 1, 0.5, pm=True, accent=True), n(6, 1, 0.5, pm=True),
+    [n(6, 7, 0.5, pm=True, accent=True), n(6, 7, 0.5, pm=True),
+     n(6, 6, 0.5, pm=True), n(6, 6, 0.5, pm=True),
+     n(6, 5, 0.5, pm=True, accent=True), n(6, 5, 0.5, pm=True),
+     n(6, 4, 0.5, pm=True), n(6, 4, 0.5, pm=True)],
+    [n(6, 3, 0.5, pm=True, accent=True), n(6, 3, 0.5, pm=True),
      chug(0.5, True), chug(0.5), chug(0.5), chug(0.5), chug(0.5), chug(0.5)],
-    [n(6, 0, 0.5, pm=True, accent=True), n(6, 1, 0.5, pm=True),
-     n(6, 2, 0.5, pm=True), n(6, 3, 0.5, pm=True),
-     n(6, 5, 0.5, pm=True, accent=True), n(6, 3, 0.5, pm=True),
-     n(6, 2, 0.5, pm=True), n(6, 1, 0.5, pm=True)],
-    [n(6, 0, 4.0, accent=True)],
+    [n(6, 4, 0.5, pm=True, accent=True), n(6, 5, 0.5, pm=True),
+     n(6, 6, 0.5, pm=True), n(6, 7, 0.5, pm=True),
+     n(6, 6, 0.5, pm=True, accent=True), n(6, 5, 0.5, pm=True),
+     n(6, 4, 0.5, pm=True), n(6, 3, 0.5, pm=True)],
+    [n(6, 4, 4.0, accent=True)],
 ]
-CHROMA_LABELS = ['G F♯ F E', 'E♭ → D pedal', 'climb & fall', 'D ring']
+CHROMA_LABELS = ['A G♯ G F♯', 'E♯ → F♯ pedal', 'climb & fall', 'F♯ ring']
 
 
-# ── Etude 3: syncopated breakdown ────────────────────────────────────
-# Stabs and silence. The rests are the riff.
+# ── Etude 3: syncopated break stabs ──────────────────────────────────
+# Stabs and silence, mirroring the song's Break. The rests are the riff.
 BREAK_BARS = [
-    [c(D5, 0.5, accent=True), r(0.5), r(0.5), c(D5, 0.5, accent=True),
-     r(0.5), c(D5, 0.5, accent=True), c(F5, 0.5, accent=True), r(0.5)],
-    [c(G5, 0.5, accent=True), r(0.5), c(F5, 0.5, accent=True), r(0.5),
-     c(D5, 0.5, accent=True), r(0.5), r(0.5), r(0.5)],
-    [c(D5, 0.5, accent=True), r(0.5), r(0.5), c(D5, 0.5, accent=True),
-     r(0.5), c(D5, 0.5, accent=True), c(F5, 0.5, accent=True), r(0.5)],
-    [c(G5, 0.5, accent=True), c(G5, 0.5), c(F5, 0.5, accent=True), c(F5, 0.5),
-     c(D5, 2.0, accent=True)],
+    [c(FS5, 0.5, accent=True), r(0.5), r(0.5), c(FS5, 0.5, accent=True),
+     r(0.5), c(FS5, 0.5, accent=True), c(D5, 0.5, accent=True), r(0.5)],
+    [c(D5, 0.5, accent=True), r(0.5), c(D5, 0.5, accent=True), r(0.5),
+     c(FS5, 0.5, accent=True), r(0.5), r(0.5), r(0.5)],
+    [c(FS5, 0.5, accent=True), r(0.5), r(0.5), c(FS5, 0.5, accent=True),
+     r(0.5), c(FS5, 0.5, accent=True), c(D5, 0.5, accent=True), r(0.5)],
+    [c(D5, 0.5, accent=True), c(D5, 0.5), c(D5, 0.5, accent=True), c(D5, 0.5),
+     c(FS5, 2.0, accent=True)],
 ]
-BREAK_LABELS = ['D5 · D5 D5 F5', 'G5 F5 D5', 'D5 · D5 D5 F5', 'G5 F5 → D5']
+BREAK_LABELS = ['F♯5 · F♯5 F♯5 D5', 'D5 D5 F♯5', 'F♯5 · F♯5 F♯5 D5', 'D5 → F♯5']
+
+BREAK_CHORDS = [
+    ('F♯5', FS5_SHAPE, PC_ROLES),
+    ('D5', D5_SHAPE, PC_ROLES),
+]
 
 
 # ── Etude 4: clean arpeggio interlude ────────────────────────────────
 # The song's dynamic trick: drop to clean, let chords ring, then slam
-# back in. Dm → B♭ → C → Dm, picked as broken chords.
-DM_ARP = [n(4, 0, 0.5), n(3, 2, 0.5), n(2, 3, 0.5), n(1, 1, 0.5),
-          n(2, 3, 0.5), n(3, 2, 0.5), n(2, 3, 0.5), n(1, 1, 0.5)]
-BB_ARP = [n(5, 1, 0.5), n(4, 3, 0.5), n(3, 3, 0.5), n(2, 3, 0.5),
-          n(3, 3, 0.5), n(4, 3, 0.5), n(3, 3, 0.5), n(2, 3, 0.5)]
-C_ARP  = [n(5, 3, 0.5), n(4, 2, 0.5), n(3, 0, 0.5), n(2, 1, 0.5),
-          n(3, 0, 0.5), n(4, 2, 0.5), n(3, 0, 0.5), n(2, 1, 0.5)]
-ARP_BARS = [DM_ARP, BB_ARP, C_ARP,
-            [c([(4, 0), (3, 2), (2, 3), (1, 1)], 4.0, accent=True)]]
-ARP_LABELS = ['Dm', 'B♭', 'C', 'Dm']
+# back in. F♯m → D → E → F♯m, picked as broken chords.
+FSM_ARP = [n(4, 4, 0.5), n(3, 2, 0.5), n(2, 2, 0.5), n(1, 2, 0.5),
+           n(2, 2, 0.5), n(3, 2, 0.5), n(2, 2, 0.5), n(1, 2, 0.5)]
+D_ARP   = [n(4, 0, 0.5), n(3, 2, 0.5), n(2, 3, 0.5), n(1, 2, 0.5),
+           n(2, 3, 0.5), n(3, 2, 0.5), n(2, 3, 0.5), n(1, 2, 0.5)]
+E_ARP   = [n(4, 2, 0.5), n(3, 1, 0.5), n(2, 0, 0.5), n(1, 0, 0.5),
+           n(2, 0, 0.5), n(3, 1, 0.5), n(2, 0, 0.5), n(1, 0, 0.5)]
+ARP_BARS = [FSM_ARP, D_ARP, E_ARP,
+            [c([(4, 4), (3, 2), (2, 2), (1, 2)], 4.0, accent=True)]]
+ARP_LABELS = ['F♯m', 'D', 'E', 'F♯m']
 
 ARP_CHORDS = [
-    ('Dm', [None, None, 0, 2, 3, 1], {4: 'R', 3: '5', 2: 'R', 1: 'b3'}),
-    ('B♭', [None, 1, 3, 3, 3, None], {5: 'R', 4: '5', 3: 'R', 2: '3'}),
-    ('C',  [None, 3, 2, 0, 1, 0],   {5: 'R', 4: '3', 3: '5', 2: 'R', 1: '3'}),
+    ('F♯m', [None, None, 4, 2, 2, 2], {4: 'R', 3: 'b3', 2: '5', 1: 'R'}),
+    ('D',   [None, None, 0, 2, 3, 2], {4: 'R', 3: '5', 2: 'R', 1: '3'}),
+    ('E',   [None, None, 2, 1, 0, 0], {4: 'R', 3: '3', 2: '5', 1: 'R'}),
 ]
 
 
@@ -98,60 +108,61 @@ EXERCISE = {
     "title_em": "vocabulary",
     "eyebrow": "Etudes in the Song's Dialect",
     "eyebrow_short": "Riffs",
-    "subtitle": "Pedal point, chromatic runs, breakdown stabs, clean interludes.",
+    "subtitle": "Pedal point, chromatic crawls, break stabs, clean interludes.",
     "intro_prose": """
       <p>These four etudes are <em>original practice riffs</em>, not the
       song — for the real parts, read the official tab. What they teach is
-      the song's riff <strong>grammar</strong>: a galloping open-D pedal
-      interrupted by chord punches, chromatic crawls on the low string,
-      breakdowns where the silence hits as hard as the stabs, and the
+      the song's riff <strong>grammar</strong>: a galloping pedal on the
+      fretted F♯ interrupted by chord punches, chromatic crawls on the low
+      string, a break where the silence hits as hard as the stabs, and the
       clean, ringing passages that set up the next wall of distortion.</p>
       <p>Learn each etude from the tab below, loop the audio, and only
-      then raise the tempo. Every device here maps directly onto a section
-      of the real song.</p>
+      then raise the tempo — the song lives at ♩=212, so every device has
+      to be clean long before it's fast. Each one maps directly onto a
+      section of the real song.</p>
     """,
     "intro_pills": [
-        ("D minor world", "The riffs orbit D · F · G · A · C · B♭ — chord tones of D minor."),
+        ("F♯ minor world", "The riffs orbit F♯ · A · B · C♯ · E — chord tones of F♯ minor — plus D (the ♭6) and G♯ (the 2) where the lines walk through them."),
         ("Dynamics", "Palm-muted tight vs. open and ringing. The contrast is the drama."),
     ],
     "sections": [
         {
             "heading": "Etude 1 — pedal point",
-            "blurb": "The open low D keeps galloping while chords flash above it. This is the single most important move in the song's rhythm playing.",
+            "blurb": "The fretted low F♯ keeps galloping while chords flash above it. This is the single most important move in the song's rhythm playing.",
             "layout": "full",
             "cards": [
                 tab_card(
-                    "Etude 1", "Open-D pedal with chord stabs",
-                    "Eighths · pedal muted, stabs open and accented",
+                    "Etude 1", "F♯ pedal with chord punches",
+                    "Gallops · pedal muted, punches open and accented",
                     PEDAL_BARS, PEDAL_LABELS,
-                    "Two textures in one bar: <em>thump</em> (muted pedal) and <em>bark</em> (open stab). The instant the chord sounds, your palm lifts; the instant it's done, the mute re-seats. When this is clean, double-time the pedal notes into sixteenths.",
+                    "Two textures in one bar: <em>thump</em> (muted gallop on fret 4) and <em>bark</em> (open punch). The instant the chord sounds, your palm lifts; the instant it's done, the mute re-seats. <strong>The hardest move here is the C♯5 punch</strong> — your index finger leaves the pedal at fret 4 and the whole hand leaps to fret 11, then snaps back. Practise bar 2 alone, dead slow, eyes on fret 11's target before you jump; only re-join the loop when the leap lands without a flam.",
                     bars_per_line=2, width=900, chords=PEDAL_CHORDS, gain=0.5),
             ],
         },
         {
             "heading": "Etude 2 — chromatic crawl",
-            "blurb": "Single palm-muted notes walking down the dropped string a half-step at a time — pure thrash DNA, and it shows up whenever the song wants menace.",
+            "blurb": "Single palm-muted notes walking down the low string a half-step at a time — pure thrash DNA, and it shows up whenever the song wants menace.",
             "layout": "full",
             "cards": [
                 tab_card(
-                    "Etude 2", "Chromatic descent to the open pedal",
+                    "Etude 2", "Chromatic descent to the fretted pedal",
                     "Alternate picking · strict palm mute · accents mark the shifts",
                     CHROMA_BARS, CHROMA_LABELS,
-                    "Fingering: one finger per fret, hand drifting down the neck. Bar 3 reverses the motion — climb up, fall back. Keep every note the same length; chromatic runs expose uneven picking instantly.",
+                    "Note names, fret by fret: A (7) → G♯ (6) → <strong>G (5), the chromatic passing tone</strong> outside the key — it exists only to connect G♯ to F♯ — then F♯ (4), home. Bar 2 opens on <strong>E♯ (3) — the verse's leading tone, a half step under the root</strong>; the song itself leans on this note before resolving up into F♯. Fingering: one finger per fret, hand drifting down the neck. Bar 3 reverses the motion — climb up, fall back. Keep every note the same length; chromatic runs expose uneven picking instantly.",
                     bars_per_line=2, width=900, gain=0.5),
             ],
         },
         {
-            "heading": "Etude 3 — breakdown stabs",
-            "blurb": "Syncopation: chords land off the grid and the gaps stay dead silent. Count out loud — this one is won or lost in the rests.",
+            "heading": "Etude 3 — break stabs",
+            "blurb": "Syncopation straight from the song's Break: chords land off the grid and the gaps stay dead silent. Count out loud — this one is won or lost in the rests.",
             "layout": "full",
             "cards": [
                 tab_card(
-                    "Etude 3", "Syncopated breakdown",
-                    "Stabs + dead silence · choke every rest with both hands",
+                    "Etude 3", "Syncopated break stabs",
+                    "F♯5 / D5 stabs + dead silence · choke every rest with both hands",
                     BREAK_BARS, BREAK_LABELS,
-                    "After each stab, kill the strings: fretting hand relaxes (without lifting), picking palm drops flat. The groove lives in how <em>black</em> the silences are. Tap your foot on quarters the whole way through.",
-                    bars_per_line=2, width=900, gain=0.5),
+                    "After each stab, kill the strings: fretting hand relaxes (without lifting), picking palm drops flat. The groove lives in how <em>black</em> the silences are. Tap your foot on quarters the whole way through — bar 4 piles the D5 hits up and resolves them into a ringing F♯5.",
+                    bars_per_line=2, width=900, chords=BREAK_CHORDS, gain=0.5),
             ],
         },
         {
@@ -160,10 +171,10 @@ EXERCISE = {
             "layout": "full",
             "cards": [
                 tab_card(
-                    "Etude 4", "Arpeggiated Dm — B♭ — C",
+                    "Etude 4", "Arpeggiated F♯m — D — E",
                     "Let ring · fingers stay planted on the chord shape",
                     ARP_BARS, ARP_LABELS,
-                    "Plant the whole chord shape first, then pick through it — never assemble it note by note. Maximum sustain, minimum pick attack. Practising loud-to-quiet transitions (Etude 1 straight into this) trains the song's biggest dynamic moves.",
+                    "The key's three pillars, broken open. F♯m: F♯3 root (4,4) · A3 ♭3 (3,2) · C♯4 5th (2,2) · F♯4 octave (1,2). D: D3 root (4,0) · A3 5th (3,2) · D4 octave (2,3) · F♯4 3rd (1,2). E: E3 root (4,2) · G♯3 3rd (3,1) · B3 5th (2,0) · E4 octave (1,0). Plant the whole chord shape first, then pick through it — never assemble it note by note. Maximum sustain, minimum pick attack. Practising loud-to-quiet transitions (Etude 1 straight into this) trains the song's biggest dynamic moves.",
                     bars_per_line=2, width=900, chords=ARP_CHORDS, strum=False),
             ],
         },
@@ -172,11 +183,11 @@ EXERCISE = {
         "heading_one": "Now read the ",
         "heading_em": "real parts",
         "heading_two": "",
-        "body": "<p>With these four devices under your fingers, open the official tab and start matching: which sections gallop on the pedal? Where does the chromatic crawl appear? Which hits are breakdown stabs? The <a href=\"./roadmap.html\" style=\"color:var(--accent);font-weight:600;\">song roadmap</a> page walks the structure section by section.</p>",
+        "body": "<p>With these four devices under your fingers, open the official tab and start matching: which sections gallop on the F♯ pedal? Where does the E♯ leading tone appear? Which hits are the Break's stabs? The <a href=\"./roadmap.html\" style=\"color:var(--accent);font-weight:600;\">song roadmap</a> page walks the structure section by section.</p>",
         "items": [
             ("One etude a day", "Rotate them. Each one is a different hand skill; none substitutes for another."),
             ("Transitions", "Practise jumping between etudes without stopping — Etude 1 into 4 into 3. The song never gives you a reset bar."),
-            ("Write one", "Compose your own 2-bar riff using the pedal + one chromatic move. If you can write in the dialect, you can read it fluently."),
+            ("Write one", "Compose your own 2-bar riff using the F♯ pedal + one chromatic move. If you can write in the dialect, you can read it fluently."),
         ],
     },
     "closing": "Learn the grammar, then read the song like a native.",

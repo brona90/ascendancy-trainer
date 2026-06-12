@@ -19,19 +19,25 @@ def _link(href, text):
 
 
 SECTION_ROWS = [
-    ("Intro", "Twin-guitar melody over a driving low-D rhythm",
+    ("Intro · 1–16", "Twin octave leads over the F#5→D5 gallop",
      "harmony.html", "Harmonized thirds", "gallop.html", "Gallop picking"),
-    ("Verses", "Fast palm-muted riffing on the dropped string, chord punches",
+    ("Verses · 17–32 / 57–72", "Palm-muted F# pedal gallop, the E#→F# leading-tone move, C#5 punches",
      "gallop.html", "Gallop picking", "riffs.html", "Riff vocabulary"),
-    ("Pre-chorus", "Rhythmic tension — syncopated hits and builds",
-     "riffs.html", "Riff vocabulary", "tuning.html", "Power chords"),
-    ("Choruses", "Bigger, more open chords; melodic guitar lines on top",
-     "tuning.html", "Power chords", "dminor.html", "D minor map"),
-    ("Bridge / breakdown", "Stabs, silence, and dynamic drops",
-     "riffs.html", "Breakdown etude", "gallop.html", "Reverse gallop"),
-    ("Solo", "Legato runs, bends, fast alternate-picked descents",
-     "leads.html", "Lead toolkit", "dminor.html", "Box 3"),
-    ("Final chorus / outro", "Everything at once — stamina is the skill",
+    ("Pre-choruses · 33–48 / 73–88 / 177–192", "Syncopated stabs, both guitars in thirds",
+     "riffs.html", "Riff vocabulary", "harmony.html", "Harmonized thirds"),
+    ("Choruses · 49–56 / 89–104", "F#5→D5 — the home barre to the open dropped string",
+     "tuning.html", "Power chords", "fsharp.html", "F# minor map"),
+    ("Break · 105–112", "Open-string legato figure (0h7) — the song drops to a single line",
+     "leads.html", "Legato builders", "riffs.html", "Riff vocabulary"),
+    ("Break verse · 113–128", "The verse gallop returns over the break's open-string figure",
+     "riffs.html", "Riff vocabulary", "gallop.html", "Gallop picking"),
+    ("Solo · 129–144", "High register, taps up to frets 18–19",
+     "leads.html", "Lead toolkit", "fullneck.html", "Full-neck map"),
+    ("Bridge · 145–160", "Tremolo-picked chord walk — F#5–G#5–A5–G#5",
+     "leads.html", "Tremolo picking", "gallop.html", "Picking endurance"),
+    ("Duet · 161–176", "Twin guitars in diatonic thirds",
+     "harmony.html", "Harmonized thirds", "fsharp.html", "F# minor map"),
+    ("Final chorus · 193–228", "Thirty-six bars — everything at once; stamina is the skill",
      "routine.html", "Daily routine", "gallop.html", "Endurance drills"),
 ]
 
@@ -40,7 +46,7 @@ def section_table():
     rows = []
     for name, desc, h1, t1, h2, t2 in SECTION_ROWS:
         rows.append(
-            '<div style="display:grid;grid-template-columns:9.5rem 1fr;gap:0.75rem;'
+            '<div style="display:grid;grid-template-columns:11.5rem 1fr;gap:0.75rem;'
             'padding:0.65rem 0;border-bottom:1px solid var(--card-line);align-items:baseline;">'
             f'<div style="font-weight:700;color:var(--card-ink);font-style:italic;">{name}</div>'
             f'<div>{desc}<br><span style="font-size:0.85rem;">Train it: '
@@ -56,17 +62,18 @@ WOODSHED_STEPS = """
   boundaries in the tab (intro, verse, chorus…). Name each riff — Riff A,
   Riff B — and learn them as separate vocabulary words, not one long
   sentence.</li>
-  <li style="margin:0.45rem 0;"><strong>Ladder each chunk.</strong> Set the
-  metronome by ear against the record (tap along with the site's Tap
-  button), then practise the chunk at 50% → 70% → 85% → 95% → 100%. A tempo
-  is &ldquo;earned&rdquo; when you play the chunk three times in a row
-  clean.</li>
+  <li style="margin:0.45rem 0;"><strong>Ladder each chunk.</strong> The
+  song sits at ♩212, so the rungs are real numbers: 50% ≈ 106 → 70% ≈ 148
+  → 85% ≈ 180 → 212. For the hardest chunks (verse gallop, solo, bridge
+  tremolo) add a 60% ≈ 127 rung — the jump from 106 to 148 is too big to
+  take in one step. A tempo is &ldquo;earned&rdquo; when you play the
+  chunk three times in a row clean.</li>
   <li style="margin:0.45rem 0;"><strong>Loop the seams.</strong> Most
   breakdowns happen <em>between</em> sections. Practise the last bar of one
   chunk into the first bar of the next as its own exercise.</li>
   <li style="margin:0.45rem 0;"><strong>Assemble.</strong> Play sections in
-  pairs, then halves, then the whole song at 85% before ever attempting
-  full speed end-to-end.</li>
+  pairs, then halves, then the whole song at 85% (♩180) before ever
+  attempting 212 end-to-end.</li>
   <li style="margin:0.45rem 0;"><strong>Play with the record.</strong> The
   final exam. The record doesn't slow down for you — your gallop endurance
   (and your drop-D tuning stability) gets exposed here.</li>
@@ -74,17 +81,20 @@ WOODSHED_STEPS = """
 """
 
 GET_THE_NOTES = f"""
-<p>This trainer builds your <em>hands</em>; the note-for-note source is the
-official tab you're working from:
-{_link(UG_URL, "Ascendancy — Ultimate Guitar")}. We don't reprint it here —
-open it side-by-side with these pages.</p>
+<p>This trainer builds your <em>hands</em>; the note-for-note source lives
+on this site now — the {_link("./song.html", "Full song page")} engraves the
+whole 228-bar arrangement, section by section, with playback. The community
+tab it was checked against is
+{_link(UG_URL, "Ascendancy — Ultimate Guitar")} — useful as a second
+opinion when something sounds off.</p>
 <p>Reading checklist as you go through it:</p>
 <ul style="margin:0.25rem 0 0;padding-left:1.3rem;">
   <li style="margin:0.35rem 0;"><strong>Confirm the tuning</strong> at the
   top of the tab (drop D) and tune before reading a single bar.</li>
   <li style="margin:0.35rem 0;"><strong>Tag the devices.</strong> For every
-  riff, ask: pedal-point? gallop or reverse gallop? chromatic move?
-  breakdown stabs? You drilled all of them here — name what you see.</li>
+  riff, ask: pedal-point? gallop or reverse gallop? leading-tone move?
+  syncopated stabs? tremolo walk? open-string legato? You drilled all of
+  them here — name what you see.</li>
   <li style="margin:0.35rem 0;"><strong>Mark the twin-lead passages</strong>
   and decide which voice you're learning first (low voice first is easier —
   it usually carries the melody).</li>
@@ -106,11 +116,13 @@ EXERCISE = {
     "subtitle": "The architecture, the method, and the official tab.",
     "intro_prose": """
       <p><em>Ascendancy</em> — the title track of Trivium's 2005 album — is
-      a fast, riff-dense metalcore song: drop D, D minor, screamed verses
-      against sung choruses, twin-guitar harmonies, a proper solo, and a
-      rhythm section that gallops nearly wall to wall. It's a lot of
-      material, which is exactly why you don't learn it front-to-back like
-      a book.</p>
+      a fast, riff-dense metalcore song: drop D, F# minor, ♩212, 228 bars
+      of 4/4, screamed verses against sung choruses, twin-guitar harmonies,
+      a proper solo, and a rhythm section that gallops nearly wall to wall.
+      Note the split: the <em>tuning</em> is drop D but the <em>key</em> is
+      F# minor — the root is the fret-4 barre, and the open D is the ♭6,
+      not home. It's a lot of material, which is exactly why you don't
+      learn it front-to-back like a book.</p>
       <p>You learn it like a <strong>building</strong>: identify the
       sections, train the skill each one demands (that's the rest of this
       site), learn each section's notes from the official tab, then weld
@@ -118,7 +130,8 @@ EXERCISE = {
     """,
     "intro_pills": [
         ("Tuning", "Drop D — D A D G B E. Re-check it every session."),
-        ("Tempo", "Fast. Set the click by tapping along with the record, then ladder up to it."),
+        ("Key", "F# minor — F# G# A B C# D E. The root is the fret-4 barre; the open D is the ♭6."),
+        ("Tempo", "♩ = 212. Nobody starts there — the ladder is 106 → 148 → 180 → 212."),
     ],
     "sections": [
         {
@@ -131,7 +144,7 @@ EXERCISE = {
                     "title": "Section by section",
                     "role": "Skill links into the rest of the trainer",
                     "body": _html(section_table()),
-                    "caption": "Structure described from the recording in broad strokes — use the official tab for the exact bar count and notes of each section.",
+                    "caption": "Bar numbers verified against the engraved tab on the Full song page — open a section there to read its exact notes.",
                 },
             ],
         },
@@ -171,8 +184,8 @@ EXERCISE = {
         "body": "<p>A song this dense yields to consistency, not heroics. The <a href=\"./routine.html\" style=\"color:var(--accent);font-weight:600;\">daily routine</a> page turns everything on this site into a 30-minute loop you can run every day until the song is yours.</p>",
         "items": [
             ("Week 1–2", "Setup + gallop + riff etudes. Don't touch the tab yet except to read its structure."),
-            ("Week 3–4", "Verse and chorus chunks from the tab at 50–70%, scales and harmony pages in rotation."),
-            ("Week 5+", "Solo section via the lead toolkit, seam loops, then full assembly at 85%."),
+            ("Week 3–4", "Verse and chorus chunks from the tab at ♩106–148 (50–70%), scales and harmony pages in rotation."),
+            ("Week 5+", "Solo section via the lead toolkit, seam loops, then full assembly at ♩180 (85%)."),
         ],
     },
     "closing": "Sections, seams, then the song. Brick by brick.",

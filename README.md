@@ -4,8 +4,8 @@
 
 A standalone, offline-capable practice app for learning **"Ascendancy"
 by Trivium** on guitar — drop D setup, gallop picking, riff vocabulary,
-the D minor scale map, harmonized twin leads, lead techniques, and a
-song roadmap + daily routine for assembling the real thing. Built as a
+the F♯ minor scale map, harmonized twin leads, lead techniques, and a
+song roadmap + daily routine for assembling the real thing (♩ = 212). Built as a
 Progressive Web App so it installs from Safari to the iOS home screen
 and runs without a network.
 
@@ -29,9 +29,10 @@ the audio.
   gallop with chord punches. The song's rhythmic engine.
 - **Riff vocabulary** — four original etudes in the song's dialect:
   pedal point, chromatic crawl, breakdown stabs, clean arpeggios.
-- **D minor scale map** — natural minor + pentatonic in three boxes,
-  remapped for drop D (the open 6th string is the root).
-- **Full neck** — the same D minor across the whole fretboard, the three
+- **F♯ minor scale map** — natural minor + pentatonic in three boxes,
+  remapped for drop D (the root is the fret-4 barre; the open 6th
+  string is the ♭6).
+- **Full neck** — the same F♯ minor across the whole fretboard, the three
   boxes joined into one; a full-neck climb, the scale on the dropped 6th
   string, and every root located.
 - **Harmonized thirds** — the twin-guitar skill: one melody, both
@@ -95,11 +96,10 @@ seanSong/
 │   ├── tab.py                     # tab notation SVG
 │   ├── songjson.py                # structured tab JSON → engraved notation (full-song page)
 │   ├── song.json                  # the song's tab data, engraved by the song page
-│   ├── songtab.py                 # stacked-score layout (+ legacy ASCII-tab parser)
 │   ├── font_regular.b64 / font_italic.b64
 │   └── exercises/
 │       ├── _common.py             # shared drop-D helpers (not a page)
-│       ├── tuning.py  gallop.py  riffs.py  dminor.py  fullneck.py
+│       ├── tuning.py  gallop.py  riffs.py  fsharp.py  fullneck.py
 │       ├── harmony.py leads.py   roadmap.py song.py   routine.py
 └── (built) index.html, <slug>.html × 10, manifest.webmanifest,
     sw.js, icon.svg, apple-touch-icon.png

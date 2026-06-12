@@ -17,24 +17,27 @@ OPEN_MIDI = {6: 38, 5: 45, 4: 50, 3: 55, 2: 59, 1: 64}
 
 # ── One-finger power chords (drop D, strings 6-5-4) ──────────────────
 # Shape arrays are ordered low-to-high string (6 → 1) for chord_box.
+# This is the song's actual chord vocabulary: Ascendancy is F# minor, so
+# the positions are D5 (open), F#5 (the home barre at 4), and the frets
+# the verses/bridge walk through.
 PC_ROLES = {6: 'R', 5: '5', 4: 'R'}
 
 D5_SHAPE  = [0, 0, 0, None, None, None]
 E5_SHAPE  = [2, 2, 2, None, None, None]
-F5_SHAPE  = [3, 3, 3, None, None, None]
-G5_SHAPE  = [5, 5, 5, None, None, None]
+FS5_SHAPE = [4, 4, 4, None, None, None]
+GS5_SHAPE = [6, 6, 6, None, None, None]
 A5_SHAPE  = [7, 7, 7, None, None, None]
-BB5_SHAPE = [8, 8, 8, None, None, None]
-C5_SHAPE  = [10, 10, 10, None, None, None]
+B5_SHAPE  = [9, 9, 9, None, None, None]
+CS5_SHAPE = [11, 11, 11, None, None, None]
 
 # The same chords as (string, fret) note lists for tab/chord events.
 D5  = [(6, 0), (5, 0), (4, 0)]
 E5  = [(6, 2), (5, 2), (4, 2)]
-F5  = [(6, 3), (5, 3), (4, 3)]
-G5  = [(6, 5), (5, 5), (4, 5)]
+FS5 = [(6, 4), (5, 4), (4, 4)]
+GS5 = [(6, 6), (5, 6), (4, 6)]
 A5  = [(6, 7), (5, 7), (4, 7)]
-BB5 = [(6, 8), (5, 8), (4, 8)]
-C5  = [(6, 10), (5, 10), (4, 10)]
+B5  = [(6, 9), (5, 9), (4, 9)]
+CS5 = [(6, 11), (5, 11), (4, 11)]
 
 
 def audio_from_bars(bars, bpm=100, gain=0.45, strum=False):

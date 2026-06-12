@@ -96,9 +96,13 @@ def build_apple_touch_icon():
         except FileNotFoundError:
             continue
         except subprocess.CalledProcessError as e:
-            print(f'[png skip] {tool} failed: {e}')
-            return
-    print('[png skip] none of rsvg-convert, magick, convert found')
+            # A tool that exists but fails (e.g. ImageMagick's policy.xml
+            # blocking SVG) must fall through to the next tool, and its
+            # stderr must be visible or the real cause is undiagnosable.
+            err = (e.stderr or b'').decode(errors='replace').strip()
+            print(f'[png skip] {tool} failed: {err or e}')
+            continue
+    print('[png skip] none of rsvg-convert, magick, convert succeeded')
 
 
 # apple-touch-icon.png is a REQUIRED build product: the service worker's

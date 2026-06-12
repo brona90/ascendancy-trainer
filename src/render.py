@@ -950,6 +950,12 @@ svg.tab text, svg.tab-rich text, svg.fretboard text {
 
 /* ── Print ────────────────────────────────────── */
 @media print {
+  /* The dark theme's named colors would print near-white on white paper —
+     remap the custom properties so every heading/blurb inherits printable ink. */
+  :root {
+    --ink: #111; --ink-soft: #333; --sepia: #444;
+    --accent: #8f1219; --accent-dark: #6e0e14;
+  }
   html, body { background: white; color: black; }
   .topbar, .metro, .modal-backdrop, .card-play, .ex-footer { display: none !important; }
   .card { background: white; box-shadow: none; border: 1px solid #aaa; break-inside: avoid; }
@@ -992,7 +998,9 @@ const Audio = (() => {
       comp.connect(makeup);
       makeup.connect(ctx.destination);
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    // 'suspended' OR Safari's non-standard 'interrupted' (after a call/Siri
+    // in a standalone PWA) — anything not running gets a resume nudge.
+    if (ctx.state !== 'running') ctx.resume();
     return ctx;
   }
   function midiToHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
@@ -1004,9 +1012,9 @@ const Audio = (() => {
     const c = getCtx();
     const sr = c.sampleRate;
     const period = Math.max(2, Math.round(sr / freq));
-    // Decay scales with frequency — higher notes fade faster, like a real string.
-    // Total duration capped at ~1.2s.
-    const decay = Math.min(0.992, 0.985 + Math.min(0.007, 80 / freq));
+    // Flat per-sample decay; higher notes still die faster because the loop
+    // filter runs once per (shorter) period. Total duration capped at ~1.4s.
+    const decay = 0.992;
     const durSec = Math.min(1.4, 0.7 + 200 / freq);
     const N = Math.floor(sr * durSec);
     const buf = c.createBuffer(1, N, sr);
@@ -1052,6 +1060,13 @@ const Audio = (() => {
     const c = getCtx();
     const src = c.createBufferSource();
     src.buffer = getBuffer(freq);
+    // The delay line is an integer number of samples and its 2-tap loop
+    // filter adds half a sample of group delay, so the buffer actually rings
+    // at sr/(period + 0.5) — up to ~16 cents flat in the lead register.
+    // Resample to the true pitch.
+    const sr = c.sampleRate;
+    const period = Math.max(2, Math.round(sr / freq));
+    src.playbackRate.value = freq * (period + 0.5) / sr;
     const g = c.createGain();
     g.gain.setValueAtTime(gain, when);
     g.gain.exponentialRampToValueAtTime(0.0001, when + src.buffer.duration);
@@ -1322,7 +1337,12 @@ function cancelLoop() {
     if (e.key === 'Escape') close();
     else if (e.key === 'ArrowLeft' && idx > 0) { idx--; render(); }
     else if (e.key === 'ArrowRight' && idx < cards.length - 1) { idx++; render(); }
-    else if (e.key === ' ') { e.preventDefault(); playBtn.click(); }
+    // Space = play/pause shortcut — but never steal it from a focused
+    // control (a keyboard user pressing Space on Loop/Close expects THAT
+    // button to activate).
+    else if (e.key === ' ' && !e.target.closest('button, input, select, a')) {
+      e.preventDefault(); playBtn.click();
+    }
   });
 
   // Modal play (toggle)
@@ -1378,10 +1398,12 @@ function cancelLoop() {
   openFromHash();
   window.addEventListener('hashchange', openFromHash);
 
-  // Swipe gestures in modal
+  // Swipe gestures in modal. Touches that start inside a horizontally
+  // scrollable tab are the user READING the tab — never card navigation.
   let tx = null, ty = null;
   backdrop.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.modal-actions') || e.target.closest('button')) return;
+    if (e.target.closest('.modal-actions') || e.target.closest('button')
+        || e.target.closest('.tab-scroll')) return;
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
   });
@@ -1767,8 +1789,13 @@ document.querySelectorAll('.card-play').forEach(btn => {
   }
   function scheduler() {
     const c = Audio.getCtx();
-    while (nextNoteTime < c.currentTime + 0.1) {
-      const accent = (current % subdiv) === 0;
+    // 0.3s lookahead survives background-tab timer throttling (locked
+    // phone screen mid-practice) at the cost of bpm changes applying a
+    // beat or so late.
+    while (nextNoteTime < c.currentTime + 0.3) {
+      // Accent ONLY the bar's downbeat — `current` counts subdivision
+      // ticks through a 4/4 bar (subdiv * 4 of them).
+      const accent = (current % (subdiv * 4)) === 0;
       click(nextNoteTime, accent);
       nextNoteTime += 60.0 / bpm / subdiv;
       current = (current + 1) % (subdiv * 4);
@@ -1935,13 +1962,17 @@ def _card_html(c):
     role_esc = html.escape(role, quote=True)
     audio_attr = ''
     play_btn = ''
+    # html.escape the JSON: today's payloads are numeric, but the first
+    # string field an author adds must not be able to truncate the attribute.
     if audio:
-        audio_attr = f' data-audio=\'{json.dumps(audio)}\''
-        play_btn = '<button class="card-play" type="button" aria-label="Play"></button>'
+        audio_attr = f' data-audio="{html.escape(json.dumps(audio), quote=True)}"'
+        play_btn = (f'<button class="card-play" type="button" '
+                    f'aria-label="Play {title_esc}"></button>' if title else
+                    '<button class="card-play" type="button" aria-label="Play"></button>')
     # A second, optional sequence that layers all of a section's guitars so it
     # can be played as a full band (the modal exposes a "Together" button).
     if together:
-        audio_attr += f' data-audio-together=\'{json.dumps(together)}\''
+        audio_attr += f' data-audio-together="{html.escape(json.dumps(together), quote=True)}"'
     return (
         f'<article class="card" data-title="{title_esc}" data-role="{role_esc}"{audio_attr}>'
         + play_btn
@@ -2001,10 +2032,12 @@ def _ex_footer(ex, exercises):
     next_html = '<span class="ef-next disabled">Last exercise</span>'
     if idx > 0:
         p = sorted_ex[idx - 1]
-        prev_html = f'<a class="ef-prev" href="./{p["slug"]}.html">{p["title_one"]} {p["title_em"]}</a>'
+        prev_html = (f'<a class="ef-prev" href="./{p["slug"]}.html">'
+                     f'{html.escape(p["title_one"])} {html.escape(p["title_em"])}</a>')
     if idx < len(sorted_ex) - 1:
         nxt = sorted_ex[idx + 1]
-        next_html = f'<a class="ef-next" href="./{nxt["slug"]}.html">{nxt["title_one"]} {nxt["title_em"]}</a>'
+        next_html = (f'<a class="ef-next" href="./{nxt["slug"]}.html">'
+                     f'{html.escape(nxt["title_one"])} {html.escape(nxt["title_em"])}</a>')
     return f'<nav class="ex-footer">{prev_html}{next_html}</nav>'
 
 
@@ -2208,7 +2241,7 @@ INDEX_TEMPLATE = '''<!DOCTYPE html>
 </header>
 <p class="index-intro">
   A practice companion for learning <em>Ascendancy</em> by Trivium — drop D
-  tuning, gallop picking, D minor riff vocabulary, harmonized twin leads,
+  tuning, gallop picking, F# minor riff vocabulary, harmonized twin leads,
   and a section-by-section plan for assembling the song. Work these pages
   alongside the official tab: the tab tells you the notes, these exercises
   build the hands that play them.
@@ -2297,7 +2330,10 @@ SW_TEMPLATE = '''const VERSION = '{ver}';
 const CACHE = `ascendancy-${{VERSION}}`;
 const PRECACHE = {precache};
 self.addEventListener('install', (e) => {{
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
+  // cache:'reload' bypasses the HTTP cache so a new SW version can't be
+  // filled with stale responses (GitHub Pages serves max-age=600).
+  e.waitUntil(caches.open(CACHE).then((c) =>
+    c.addAll(PRECACHE.map((u) => new Request(u, {{cache: 'reload'}})))));
   self.skipWaiting();
 }});
 self.addEventListener('activate', (e) => {{
@@ -2311,13 +2347,18 @@ self.addEventListener('fetch', (e) => {{
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   e.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((resp) => {{
+    caches.match(req, {{ignoreSearch: req.mode === 'navigate'}}).then((hit) => hit || fetch(req).then((resp) => {{
       if (resp && resp.status === 200 && resp.type === 'basic') {{
         const copy = resp.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
       }}
       return resp;
-    }}).catch(() => caches.match('./index.html')))
+    }}).catch((err) => {{
+      // Offline fallback is for page navigations only — an icon or manifest
+      // request must not get an HTML body.
+      if (req.mode === 'navigate') return caches.match('./index.html');
+      throw err;
+    }}))
   );
 }});
 '''
