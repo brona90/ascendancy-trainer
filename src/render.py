@@ -974,8 +974,13 @@ const Audio = (() => {
       comp.ratio.value = 6;
       comp.attack.value = 0.003;
       comp.release.value = 0.25;
+      // Make-up gain AFTER the compressor — the compressor tames peaks, this
+      // brings the overall level back up loud. This is most of the volume.
+      const makeup = ctx.createGain();
+      makeup.gain.value = 2.4;
       master.connect(comp);
-      comp.connect(ctx.destination);
+      comp.connect(makeup);
+      makeup.connect(ctx.destination);
     }
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
@@ -1118,7 +1123,7 @@ const Audio = (() => {
     const desc = [...seq].slice(0, -1).reverse();
     return playSequence([...seq, ...desc], bpm, opts);
   }
-  let userVolume = 0.55;
+  let userVolume = 0.8;
   function setVolume(v) {
     userVolume = v;
     if (master && ctx) {
@@ -1807,7 +1812,7 @@ document.querySelectorAll('.card-play').forEach(btn => {
   // Volume control
   const volInput = document.getElementById('metro-vol');
   const volLabel = document.getElementById('metro-vol-label');
-  const savedVol = parseInt(localStorage.getItem('ascendancy-vol') || '55', 10);
+  const savedVol = parseInt(localStorage.getItem('ascendancy-vol') || '80', 10);
   volInput.value = savedVol;
   volLabel.textContent = savedVol;
   Audio.setVolume(savedVol / 100);
@@ -2020,8 +2025,8 @@ def _metro_html():
   <div class="metro-panel" id="metro-panel">
     <label>Tempo <span id="metro-bpm-label">80</span> bpm</label>
     <input type="range" id="metro-bpm" min="40" max="240" value="80"/>
-    <label>Volume <span id="metro-vol-label">55</span>%</label>
-    <input type="range" id="metro-vol" min="0" max="100" value="55"/>
+    <label>Volume <span id="metro-vol-label">80</span>%</label>
+    <input type="range" id="metro-vol" min="0" max="100" value="80"/>
     <div class="metro-row">
       <button class="metro-sub" data-sub="1">♩</button>
       <button class="metro-sub" data-sub="2">♫</button>
