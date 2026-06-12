@@ -52,17 +52,25 @@ ROOT_MAP = neck_positions(15, roots_only=True)
 # the whole map. Pitch-checked below.
 _BOXES = ((0, 5), (6, 9), (10, 15))   # open · middle · 12th-position
 
-def _box_order(positions):
-    """Order every marked note box by box, low to high, ascending within each."""
+def _box_updown(positions):
+    """Scale up and down once per box, climbing the neck low → high.
+
+    Within each box (a fret band) the notes are sorted by pitch — which, in a
+    band, is essentially low string to high — then played ascending and back
+    down. Concatenating the three boxes walks the whole neck and covers every
+    marked note, the way you'd actually practise it: run the box up and down,
+    shift up, run the next box, and so on.
+    """
     out = []
     for lo, hi in _BOXES:
         band = sorted(((s, f) for (s, f, _r) in positions if lo <= f <= hi),
                       key=lambda sf: (OPEN_MIDI[sf[0]] + sf[1], sf[0]))
         out.extend(band)
+        out.extend(band[-2::-1])     # back down, without repeating the top note
     return out
 
 
-FULL_RUN = _box_order(FULL_MAP)
+FULL_RUN = _box_updown(FULL_MAP)
 
 # D minor on the dropped 6th string alone — one octave, open to the 12th. The
 # drop-D party trick: because the low string is tuned to D, the whole scale
@@ -78,9 +86,10 @@ for _label, _seq in (('full-run', FULL_RUN), ('low-string', LOW_STRING),
     _assert_in_scale(_seq, _label)
 
 
-def _scale_tab(notes, bars_per_line=4):
-    """Asc + desc as eighth-note tab, split into bars of eight."""
-    full = notes + notes[:-1][::-1]
+def _scale_tab(notes, bars_per_line=4, prebuilt=False):
+    """Eighth-note tab, eight notes a bar. By default it plays the notes up then
+    back down; pass prebuilt=True when `notes` already includes the descent."""
+    full = notes if prebuilt else notes + notes[:-1][::-1]
     events = [n(s, f, dur=0.5) for s, f in full]
     bars = [events[i:i + 8] for i in range(0, len(events), 8)]
     return render_tab(bars, bars_per_line=bars_per_line, width=900,
@@ -88,13 +97,17 @@ def _scale_tab(notes, bars_per_line=4):
 
 
 def _map_card(num, title, role, positions, fret_range, notes, caption,
-              box_width=980, box_height=220):
+              box_width=980, box_height=220, prebuilt=False):
     body = scale_box(positions, fret_range, title=title,
                      width=box_width, height=box_height)
-    body += _scale_tab(notes)
+    body += _scale_tab(notes, prebuilt=prebuilt)
+    audio = {"type": "scale", "notes": [[s, f] for s, f in notes]}
+    if prebuilt:
+        # `notes` is already the full up-and-down run — don't let playback
+        # append another descent.
+        audio["skip_desc"] = True
     return {"num": num, "title": title, "role": role,
-            "body": body, "caption": caption,
-            "audio": {"type": "scale", "notes": [[s, f] for s, f in notes]}}
+            "body": body, "caption": caption, "audio": audio}
 
 
 EXERCISE = {
@@ -132,7 +145,8 @@ EXERCISE = {
                     "Map", "The whole neck",
                     "D natural minor · open to the 15th fret",
                     FULL_MAP, (0, 15), FULL_RUN,
-                    "Don't memorise this as a picture — use it as a reference while you play. The run climbs the neck box by box: the whole open position first, then the middle box, then the 12th-position box, each one ascending, then the whole thing back down. Every marked note lights up, so you can watch the three boxes link into one connected neck."),
+                    "Don't memorise this as a picture — use it as a reference while you play. Run the scale up and down inside the open box, then shift up and do it again in the middle box, then again in the 12th-position box: up and down, climbing the neck, until every marked note has lit. That's how the three boxes link into one connected neck.",
+                    prebuilt=True),
                 _map_card(
                     "1 string", "Up the dropped string",
                     "D minor along string 6 · open to the 12th",
