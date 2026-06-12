@@ -164,17 +164,17 @@ def _has_sound(bars):
                for bar in bars for ev in bar)
 
 
-def render_tracks(tracks, bars_per_line=4):
+def render_tracks(tracks, start_bar=1):
     """Engrave per-guitar tracks of (bars, labels, label) as a stacked score.
 
     Returns (html, audio_dict, together_dict).
 
-    Layout is a real score: the guitars are stacked and aligned, four bars to a
-    row, then the next four bars in the row below — so you read all the parts
-    that sound together (e.g. the solo's two rhythm guitars under the lead) the
-    way the original tab stacks them. Every stave shares one pixels-per-bar so a
-    note is the same size everywhere, and rows scroll sideways on a narrow
-    screen rather than being squeezed.
+    Layout is one flex COLUMN PER BAR: each column stacks that bar from every
+    guitar, and the columns wrap to the viewport — a desktop fits several bars
+    per row, a phone gets one full-width bar with no horizontal scrolling.
+    Stave order inside every column is constant and announced once in a legend
+    line above the score. Each column is sized to its own densest bar and
+    carries its bar number, so "loop bar 37" is findable at a glance.
 
     `audio` plays the parts one guitar at a time (each guitar's whole part in
     order) and its note indices line up with the engraved tab-notes' data-i, so
@@ -183,42 +183,50 @@ def render_tracks(tracks, bars_per_line=4):
     that sounds there, so it lights them all at once across the stacked staves.
     """
     # Per-voice base index (track-major) — this is the order `audio` plays in
-    # and the data-i each voice's notes carry, regardless of the row layout.
+    # and the data-i each voice's notes carry, regardless of the column layout.
     bases, acc = [], 0
     for bars, _labels, _label in tracks:
         bases.append(acc)
         acc += sum(len(b) for b in bars)
 
-    # One pixels-per-bar for the whole section keeps bars aligned across the
-    # stacked staves and notes a uniform size; denser sections get more room.
-    densest = max((len(b) for bars, _l, _lab in tracks for b in bars), default=4)
-    bar_width = max(220, min(360, densest * 17))
-    row_w = bars_per_line * bar_width
-    n_rows = max((len(bars) + bars_per_line - 1) // bars_per_line
-                 for bars, _l, _lab in tracks)
+    n_bars = max(len(bars) for bars, _l, _lab in tracks)
+    # Running data-i offset per track, advanced bar by bar.
+    starts = list(bases)
 
-    rows_html = []
-    for row in range(n_rows):
-        lo = row * bars_per_line
+    cols_html = []
+    for bi in range(n_bars):
+        # Column width follows this bar's densest voice so sparse bars stay
+        # compact; clamped so even the busiest solo bar fits a phone screen.
+        densest = max((len(bars[bi]) for bars, _l, _lab in tracks
+                       if bi < len(bars)), default=4)
+        col_w = max(170, min(350, densest * 17 + 32))
         staves = []
-        for vi, (bars, labels, label) in enumerate(tracks):
-            chunk = bars[lo:lo + bars_per_line]
-            if not chunk:
+        for vi, (bars, _labels, _label) in enumerate(tracks):
+            if bi >= len(bars):
                 continue
-            start = bases[vi] + sum(len(b) for b in bars[:lo])
             staves.append(render_tab(
-                chunk,
-                chord_labels=labels[lo:lo + bars_per_line] if labels else None,
-                bars_per_line=bars_per_line,
-                width=row_w,
+                [bars[bi]],
+                bars_per_line=1,
+                width=col_w,
+                line_h=118,
                 beat_unit=4,
-                title=label or None if row == 0 else None,
-                show_bar_numbers=False,
-                note_seq_start=start,
-                fixed_px=True,
+                show_bar_numbers=(vi == 0),
+                start_bar=start_bar + bi,
+                note_seq_start=starts[vi],
+                show_tab_letters=False,
+                pad_lr=10,
             ))
-        if staves:
-            rows_html.append('<div class="song-row">' + ''.join(staves) + '</div>')
+            starts[vi] += len(bars[bi])
+        cols_html.append(f'<div class="song-bar" style="width:{col_w}px">'
+                         + ''.join(staves) + '</div>')
+
+    legend = ''
+    labels = [lab for _b, _l, lab in tracks if lab]
+    if len(labels) > 1:
+        legend = ('<div class="song-legend">Staves, top to bottom: '
+                  + ' · '.join(labels) + '</div>')
+    html = (f'<div class="song-staves">{legend}<div class="song-bars">'
+            + ''.join(cols_html) + '</div></div>')
 
     seq = []
     for bars, _labels, _label in tracks:
@@ -226,7 +234,7 @@ def render_tracks(tracks, bars_per_line=4):
     audio = {"type": "sequence", "notes": seq, "gain": 0.42} if seq else None
     together = (_together_sequence(list(zip(bases, (t[0] for t in tracks))))
                 if len(tracks) > 1 else None)
-    return '<div class="song-staves">' + ''.join(rows_html) + '</div>', audio, together
+    return html, audio, together
 
 
 def _together_sequence(base_bars):
@@ -304,13 +312,13 @@ def _extend_audio(seq, bars):
                     seq.append({"chord": playable, "dur": dur})
 
 
-def section_cards(data=None, bars_per_line=4):
+def section_cards(data=None):
     """One dict per song section, in playing order:
 
       {title, lo, hi, n_guitars, html, audio, together}
 
     lo/hi are 0-based measure bounds [lo, hi); html/audio/together come from
-    songtab.render_tracks (stacked staves, per-guitar playback, full-band mix).
+    render_tracks (per-bar columns, per-guitar playback, full-band mix).
     """
     data = data or load()
     guitars = _guitar_tracks(data)
@@ -328,7 +336,7 @@ def section_cards(data=None, bars_per_line=4):
                 tracks.append((bars, None, title))
         if not tracks:
             continue
-        html, audio, together = render_tracks(tracks, bars_per_line)
+        html, audio, together = render_tracks(tracks, start_bar=lo + 1)
         cards.append({
             'title': sec['name'],
             'lo': lo,

@@ -608,10 +608,10 @@ body {
   display: block;
   pointer-events: none;
 }
-/* Subtle scroll hint on narrow screens — painted on whatever element
-   actually scrolls (.song-row owns the scrolling for stacked staves). */
+/* Subtle scroll hint on narrow screens (exercise tabs still scroll;
+   song-page bar columns wrap instead and need no hint). */
 @media (max-width: 720px) {
-  .card .tab-scroll, .song-row {
+  .card .tab-scroll {
     background:
       linear-gradient(to right, var(--card) 30%, transparent),
       linear-gradient(to right, transparent, var(--card) 70%) right,
@@ -621,7 +621,7 @@ body {
     background-size: 28px 100%, 28px 100%, 14px 100%, 14px 100%;
     background-attachment: local, local, scroll, scroll;
   }
-  .song-row .tab-scroll { background: none; }
+  .song-bar .tab-scroll { background: none; }
 }
 
 /* Also let chord-strip + cards shrink properly inside the page */
@@ -779,6 +779,11 @@ body {
 /* Scale-box / tab — let them use more width and height. */
 #modal-body svg.scale-box, #modal-body svg.tab, #modal-body svg.tab-rich {
   max-width: 100%; width: 100%;
+}
+/* …but song-page bar columns keep their own width — stretching every
+   one-bar SVG to the frame would wreck the wrapped-score layout. */
+#modal-body .song-bar svg.tab, #modal-body .song-bar svg.tab-rich {
+  width: auto; max-width: 100%;
 }
 #modal-body .tab-scroll { margin: 1rem 0 0; }
 #modal-body .caption {
@@ -988,20 +993,26 @@ body {
    sideways on a narrow screen. min-width:0 is required to defeat the generic
    .tab-scroll min-width that would otherwise re-stretch a short stave. */
 .song-staves { margin: 0.4rem 0 0; }
-.song-staves svg.tab-rich { min-width: 0; }
-/* The ROW is the scroller, not each stave — dragging the tab sideways must
-   move every stacked guitar together or the score alignment is meaningless. */
-.song-row {
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px;
+.song-legend {
+  font-size: 0.78rem; font-style: italic; color: var(--card-ink-soft);
+  margin: 0 0 0.5rem;
 }
-.song-row::-webkit-scrollbar { height: 6px; }
-.song-row::-webkit-scrollbar-thumb { background: rgba(124, 27, 18, 0.25); border-radius: 3px; }
-.song-row .tab-scroll { overflow-x: visible; padding: 0; }
-/* A "row" = the guitars stacked and aligned for one set of four bars. Tight
-   inside the row; a dashed rule and breathing room between rows. */
-.song-row .tab-scroll { margin: 0.05rem 0; }
-.song-row + .song-row { margin-top: 1.4rem; padding-top: 1rem; border-top: 1px dashed var(--card-line); }
+/* One flex column per bar, every guitar stacked inside it. Columns wrap to
+   the viewport: a desktop fits several bars per row, a phone gets one
+   full-width bar — NO horizontal scrolling anywhere on the song page. */
+.song-bars {
+  display: flex; flex-wrap: wrap;
+  column-gap: 10px; row-gap: 1.1rem;
+  align-items: flex-start;
+}
+.song-bar { flex: 0 1 auto; max-width: 100%; }
+/* Inside a column the .tab-scroll wrapper is inert (nothing scrolls) and the
+   SVG sizes to its width attribute, shrinking only if the column is wider
+   than a small screen. */
+.song-bar .tab-scroll { overflow-x: visible; margin: 0; padding: 0; min-width: 0; background: none; }
+.song-bar svg.tab, .song-bar svg.tab-rich {
+  min-width: 0; width: auto; max-width: 100%; height: auto; display: block;
+}
 
 /* Notation text — use the site's Fraunces rather than the browser default
    serif, so the engraved tab doesn't read as generic. Scoped to the music
@@ -1509,7 +1520,7 @@ function cancelLoop() {
   let tx = null, ty = null;
   backdrop.addEventListener('touchstart', (e) => {
     if (e.target.closest('.modal-actions') || e.target.closest('button')
-        || e.target.closest('.tab-scroll') || e.target.closest('.song-row')) return;
+        || e.target.closest('.tab-scroll')) return;
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
   });
@@ -1543,6 +1554,19 @@ const HIGHLIGHT_LIT_SEC = 0.72;   // how long a note stays lit (was 720ms)
 let highlightEvents = [];          // {el, when, until, lit}
 let highlightRaf = null;
 
+// Follow-along: while the song plays in the open modal, keep the bar that
+// just lit scrolled into view (one scroll per bar, never per note).
+let _lastFollowedBar = null;
+function _followBar(el) {
+  const backdrop = document.getElementById('modal-backdrop');
+  if (!backdrop || !backdrop.classList.contains('open')) return;
+  if (!el.closest('#modal-body')) return;
+  const bar = el.closest('.song-bar');
+  if (!bar || bar === _lastFollowedBar) return;
+  _lastFollowedBar = bar;
+  bar.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+}
+
 function _highlightTick() {
   const ctx = Audio.getCtx();
   const now = ctx.currentTime;
@@ -1555,6 +1579,7 @@ function _highlightTick() {
       void ev.el.getBoundingClientRect();   // restart any CSS transition
       ev.el.classList.add('lit');
       ev.lit = true;
+      _followBar(ev.el);
     }
     if (now >= ev.until) {
       // Note (and its lit window) has passed — un-light and retire.
@@ -1598,6 +1623,7 @@ function highlightTabNote(scopeEl, idx, when) {
 // Cancel every pending highlight: stop the rAF loop + clear all `.lit`.
 function cancelHighlights() {
   if (highlightRaf !== null) { cancelAnimationFrame(highlightRaf); highlightRaf = null; }
+  _lastFollowedBar = null;
   highlightEvents.forEach(ev => { if (ev.el) ev.el.classList.remove('lit'); });
   highlightEvents = [];
   document.querySelectorAll('circle.fret-dot.lit').forEach(d => d.classList.remove('lit'));

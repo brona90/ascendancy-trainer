@@ -329,7 +329,9 @@ def render_tab(bars,
                show_bar_numbers=True,
                start_bar=1,
                note_seq_start=0,
-               fixed_px=False):
+               fixed_px=False,
+               show_tab_letters=True,
+               pad_lr=None):
     """Render a multi-line tab.
 
     Args:
@@ -346,8 +348,10 @@ def render_tab(bars,
     n_lines = len(lines)
 
     total_height = n_lines * line_h + 30
-    pad_left = 22
-    pad_right = 22
+    # The song page's per-bar columns suppress the TAB gutter and shrink the
+    # side padding so wrapped bars sit nearly flush against each other.
+    pad_left = pad_lr if pad_lr is not None else 22
+    pad_right = pad_lr if pad_lr is not None else 22
     pad_top = 36
     pad_bottom = 26
     grid_w = width - pad_left - pad_right
@@ -398,9 +402,10 @@ def render_tab(bars,
             out.append(f'<line x1="{pad_left}" y1="{y:.2f}" x2="{line_end_x:.2f}" y2="{y:.2f}" stroke="currentColor" stroke-width="{sw:.2f}" opacity="0.55"/>')
 
         # T A B letters on left
-        for i, ch in enumerate(['T', 'A', 'B']):
-            y = line_y_top + pad_top + (1.0 + i * 1.5) * string_step + 4
-            out.append(f'<text x="{pad_left - 8}" y="{y:.2f}" font-size="13" fill="currentColor" text-anchor="end" font-style="italic" opacity="0.5">{ch}</text>')
+        if show_tab_letters:
+            for i, ch in enumerate(['T', 'A', 'B']):
+                y = line_y_top + pad_top + (1.0 + i * 1.5) * string_step + 4
+                out.append(f'<text x="{pad_left - 8}" y="{y:.2f}" font-size="13" fill="currentColor" text-anchor="end" font-style="italic" opacity="0.5">{ch}</text>')
 
         # Bar lines
         for x in bar_x_starts:
