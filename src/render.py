@@ -215,7 +215,19 @@ PAGE_CSS = r'''
   --sage-dark: #7e0d13;
 }
 * { box-sizing: border-box; }
-html { background: var(--paper); scroll-behavior: smooth; scroll-padding-top: 5rem; }
+html {
+  background: var(--paper); scroll-behavior: smooth; scroll-padding-top: 5rem;
+  /* Don't let iOS inflate fonts on rotation to landscape. */
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+}
+/* Touch basics: no grey tap flash, and `manipulation` removes the
+   double-tap-to-zoom gesture on tappables — rapid play/stop taps during
+   practice must never zoom the page. */
+button, a, .card, input[type=range] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+input[type=range] { accent-color: var(--accent-dark); }
 body {
   margin: 0;
   background:
@@ -311,6 +323,9 @@ body {
 @media (max-width: 720px) {
   .legend { grid-template-columns: 1fr; gap: 1.5rem; }
 }
+@media (max-width: 480px) {
+  .pills { grid-template-columns: 1fr; }
+}
 
 .cards {
   display: grid; gap: 1.25rem;
@@ -319,6 +334,10 @@ body {
 }
 .cards.wide { grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); }
 .cards.full { grid-template-columns: 1fr; }
+/* A 520px minimum overflows phone viewports — collapse wide grids there. */
+@media (max-width: 600px) {
+  .cards.wide { grid-template-columns: 1fr; }
+}
 .card {
   background:
     /* Subtle "spot-lit from above" highlight at the top */
@@ -372,17 +391,25 @@ body {
   z-index: 0;
 }
 .card > * { position: relative; z-index: 1; }
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.06) inset,
-    0 2px 4px rgba(8, 8, 10, 0.4),
-    0 22px 44px -8px rgba(8, 8, 10, 0.7),
-    0 0 36px -6px rgba(199, 30, 42, 0.22),
-    0 0 0 1px rgba(199, 30, 42, 0.1);
+/* Hover lift only on devices that actually hover — on touch it just makes
+   taps feel sticky (the :hover state lingers after the finger leaves). */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.8) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.06) inset,
+      0 2px 4px rgba(8, 8, 10, 0.4),
+      0 22px 44px -8px rgba(8, 8, 10, 0.7),
+      0 0 36px -6px rgba(199, 30, 42, 0.22),
+      0 0 0 1px rgba(199, 30, 42, 0.1);
+  }
+  .card:hover::before { opacity: 0.82; }
 }
-.card:hover::before { opacity: 0.82; }
+/* Touch feedback instead: a quick press-down. */
+@media (hover: none) {
+  .card:active { transform: scale(0.988); }
+}
 .card:focus-visible { outline: 2px solid var(--sage); outline-offset: 4px; }
 .card .key-num {
   font-style: italic;
@@ -581,9 +608,10 @@ body {
   display: block;
   pointer-events: none;
 }
-/* Subtle scroll hint on narrow screens */
+/* Subtle scroll hint on narrow screens — painted on whatever element
+   actually scrolls (.song-row owns the scrolling for stacked staves). */
 @media (max-width: 720px) {
-  .card .tab-scroll {
+  .card .tab-scroll, .song-row {
     background:
       linear-gradient(to right, var(--card) 30%, transparent),
       linear-gradient(to right, transparent, var(--card) 70%) right,
@@ -593,6 +621,7 @@ body {
     background-size: 28px 100%, 28px 100%, 14px 100%, 14px 100%;
     background-attachment: local, local, scroll, scroll;
   }
+  .song-row .tab-scroll { background: none; }
 }
 
 /* Also let chord-strip + cards shrink properly inside the page */
@@ -617,6 +646,10 @@ body {
     0 0 0 2px rgba(185, 28, 28, 0.18);
   z-index: 2;
   transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+/* Finger-sized on touch screens (44px is the floor for comfortable taps). */
+@media (pointer: coarse) {
+  .card-play { width: 44px; height: 44px; border-radius: 22px; font-size: 1.1rem; }
 }
 .card-play:hover {
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
@@ -756,6 +789,9 @@ body {
   position: absolute; top: 0.6rem; right: 0.8rem;
   background: none; border: none; cursor: pointer;
   font-size: 1.7rem; color: var(--card-ink-soft); line-height: 1;
+  /* Comfortable touch target. */
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
 }
 .modal-actions {
   display: flex; justify-content: space-between; align-items: center;
@@ -814,6 +850,38 @@ body {
 }
 .modal-role { font-style: italic; color: var(--card-ink-soft); margin: 0 0 1rem; }
 
+/* Phone modal: the frame becomes the whole screen — no slivers of backdrop
+   to mis-tap, full height for tall tabs, and the action bar pinned at the
+   bottom where thumbs live. */
+@media (max-width: 720px) {
+  .modal-backdrop { align-items: stretch; justify-content: stretch; }
+  .modal-frame {
+    width: 100%;
+    height: 100vh; height: 100dvh;   /* dvh tracks the iOS toolbar */
+    max-height: none; border-radius: 0;
+    padding: calc(1rem + env(safe-area-inset-top)) 1rem
+             calc(0.6rem + env(safe-area-inset-bottom));
+  }
+  .modal-title { font-size: 1.2rem; padding-right: 3rem; /* clear the ✕ */ }
+  .modal-close {
+    top: calc(0.5rem + env(safe-area-inset-top));
+    right: 0.5rem; font-size: 2rem;
+  }
+  /* Sticky action bar: stays in reach while the tab body scrolls under it.
+     margin-top:auto keeps it at the bottom even when the body is short. */
+  .modal-actions {
+    position: sticky; bottom: 0; margin-top: auto;
+    padding: 0.8rem 0 0.3rem;
+    background: linear-gradient(to top, var(--card) 72%, transparent);
+  }
+  .modal-actions button { padding: 0.7rem 1rem; font-size: 1.02rem; }
+  #modal-body .caption { font-size: 0.95rem; }
+  #modal-body .chord-strip { gap: 1rem; }
+  #modal-body .chord-strip svg.chord-box { width: 150px; max-width: 150px; }
+  #modal-body .chord-strip-item { flex: 0 0 160px; width: 160px; }
+  #modal-body .chart-bar { min-height: 90px; padding: 1.1rem 0.5rem 0.9rem; }
+}
+
 /* ── Metronome ────────────────────────────────── */
 /* z-index sits ABOVE the modal backdrop (50) so the user can keep using
    the metronome while a card is open fullscreen. */
@@ -848,6 +916,14 @@ body {
   border-radius: 4px; cursor: pointer;
 }
 .metro-row button.on { background: var(--sage); color: var(--paper); border-color: var(--sage); }
+/* Touch devices: a 52px launcher is fine, but the controls inside the
+   panel need real finger room — taller sliders and buttons. */
+@media (pointer: coarse) {
+  .metro-btn { width: 56px; height: 56px; border-radius: 28px; }
+  .metro-panel { min-width: min(260px, calc(100vw - 2rem)); padding: 0.9rem 1rem; gap: 0.7rem; }
+  .metro-panel input[type=range] { height: 32px; }
+  .metro-row button { padding: 0.65rem 0.45rem; font-size: 0.92rem; }
+}
 
 /* ── Full-song page — section meta chips + framed tab sheet ─────────── */
 /* Each song section mines its tab text for tempo / chords / guitar parts and
@@ -913,6 +989,15 @@ body {
    .tab-scroll min-width that would otherwise re-stretch a short stave. */
 .song-staves { margin: 0.4rem 0 0; }
 .song-staves svg.tab-rich { min-width: 0; }
+/* The ROW is the scroller, not each stave — dragging the tab sideways must
+   move every stacked guitar together or the score alignment is meaningless. */
+.song-row {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.song-row::-webkit-scrollbar { height: 6px; }
+.song-row::-webkit-scrollbar-thumb { background: rgba(124, 27, 18, 0.25); border-radius: 3px; }
+.song-row .tab-scroll { overflow-x: visible; padding: 0; }
 /* A "row" = the guitars stacked and aligned for one set of four bars. Tight
    inside the row; a dashed rule and breathing room between rows. */
 .song-row .tab-scroll { margin: 0.05rem 0; }
@@ -946,6 +1031,16 @@ svg.tab text, svg.tab-rich text, svg.fretboard text {
 .site-footer strong {
   font-style: normal; font-variation-settings: 'opsz' 14, 'wght' 600;
   color: var(--ink-soft);
+}
+
+/* ── Reduced motion ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 /* ── Print ────────────────────────────────────── */
@@ -1276,18 +1371,29 @@ function cancelLoop() {
       tb.classList.remove('playing');
     }
   }
+  let lockScrollY = 0;
   function open(i) {
     // Remember what triggered the modal so we can restore focus on close.
     lastTrigger = (document.activeElement && cards.includes(document.activeElement.closest('.card')))
       ? document.activeElement.closest('.card')
       : cards[i];
-    idx = i; render(); backdrop.classList.add('open'); document.body.style.overflow = 'hidden';
+    idx = i; render(); backdrop.classList.add('open');
+    // iOS Safari ignores body overflow:hidden (the page rubber-bands under
+    // the backdrop) — pin the body instead and restore scroll on close.
+    lockScrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${lockScrollY}px`;
+    document.body.style.width = '100%';
     // Move focus into the dialog (the close button).
     closeBtn.focus();
   }
   function close() {
     if (typeof stopCard === 'function') stopCard();
-    backdrop.classList.remove('open'); document.body.style.overflow = ''; idx = -1;
+    backdrop.classList.remove('open'); idx = -1;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, lockScrollY);
     // Restore focus to the triggering card.
     if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
     lastTrigger = null;
@@ -1403,7 +1509,7 @@ function cancelLoop() {
   let tx = null, ty = null;
   backdrop.addEventListener('touchstart', (e) => {
     if (e.target.closest('.modal-actions') || e.target.closest('button')
-        || e.target.closest('.tab-scroll')) return;
+        || e.target.closest('.tab-scroll') || e.target.closest('.song-row')) return;
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
   });
