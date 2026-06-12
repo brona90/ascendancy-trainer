@@ -1,5 +1,7 @@
 # Ascendancy Trainer
 
+**Live site: https://brona90.github.io/ascendancy-trainer/**
+
 A standalone, offline-capable practice app for learning **"Ascendancy"
 by Trivium** on guitar — drop D setup, gallop picking, riff vocabulary,
 the D minor scale map, harmonized twin leads, lead techniques, and a
