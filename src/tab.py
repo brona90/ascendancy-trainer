@@ -331,7 +331,10 @@ def render_tab(bars,
                note_seq_start=0,
                fixed_px=False,
                show_tab_letters=True,
-               pad_lr=None):
+               pad_lr=None,
+               pad_top=36,
+               flush=False,
+               end_double=True):
     """Render a multi-line tab.
 
     Args:
@@ -343,17 +346,23 @@ def render_tab(bars,
       title: optional title
       show_bar_numbers: small bar number above each bar
       start_bar: bar number for the first bar
+      pad_top: space above the first string (bar numbers / PM / bends live here)
+      flush: per-bar column mode for the song page — staff lines run the full
+        SVG width, no opening bar line, no title band, so adjacent wrapped
+        columns read as one continuous system.
+      end_double: draw the heavy closing double-bar (a flush caller sets this
+        only on the section's true last bar).
     """
     lines = _layout_lines(bars, bars_per_line)
     n_lines = len(lines)
 
-    total_height = n_lines * line_h + 30
+    # `30` is the title band; flush columns have no titles and no band.
+    top_offset = 0 if flush else 30
+    total_height = n_lines * line_h + (4 if flush else 30)
     # The song page's per-bar columns suppress the TAB gutter and shrink the
     # side padding so wrapped bars sit nearly flush against each other.
     pad_left = pad_lr if pad_lr is not None else 22
     pad_right = pad_lr if pad_lr is not None else 22
-    pad_top = 36
-    pad_bottom = 26
     grid_w = width - pad_left - pad_right
     string_step = 13
     grid_h = 5 * string_step
@@ -382,7 +391,7 @@ def render_tab(bars,
     # stretch its bars to fill the whole width.
     width_per_beat = grid_w / (bars_per_line * beat_unit)
     for line_idx, line_bars in enumerate(lines):
-        line_y_top = 30 + line_idx * line_h
+        line_y_top = top_offset + line_idx * line_h
         durs = []
         for bar in line_bars:
             d = sum(_event_dur(e) for e in bar)
@@ -394,12 +403,14 @@ def render_tab(bars,
             bar_x_starts.append(pad_left + cum * width_per_beat)
 
         # Staff lines stop at the last bar of THIS line (so partial last lines
-        # don't have ghost rules hanging off to the right).
-        line_end_x = bar_x_starts[-1]
+        # don't have ghost rules hanging off to the right). Flush columns run
+        # them edge to edge instead, so wrapped neighbours join seamlessly.
+        line_start_x = 0 if flush else pad_left
+        line_end_x = width if flush else bar_x_starts[-1]
         for si in range(6):
             y = line_y_top + pad_top + si * string_step
             sw = 0.85 + (si / 12) * 0.6
-            out.append(f'<line x1="{pad_left}" y1="{y:.2f}" x2="{line_end_x:.2f}" y2="{y:.2f}" stroke="currentColor" stroke-width="{sw:.2f}" opacity="0.55"/>')
+            out.append(f'<line x1="{line_start_x}" y1="{y:.2f}" x2="{line_end_x:.2f}" y2="{y:.2f}" stroke="currentColor" stroke-width="{sw:.2f}" opacity="0.55"/>')
 
         # T A B letters on left
         if show_tab_letters:
@@ -407,13 +418,18 @@ def render_tab(bars,
                 y = line_y_top + pad_top + (1.0 + i * 1.5) * string_step + 4
                 out.append(f'<text x="{pad_left - 8}" y="{y:.2f}" font-size="13" fill="currentColor" text-anchor="end" font-style="italic" opacity="0.5">{ch}</text>')
 
-        # Bar lines
-        for x in bar_x_starts:
-            out.append(f'<line x1="{x:.2f}" y1="{line_y_top + pad_top - 4}" x2="{x:.2f}" y2="{line_y_top + pad_top + grid_h + 4}" stroke="currentColor" stroke-width="1.1" opacity="0.6"/>')
+        # Bar lines. Flush columns draw only their CLOSING line (at the SVG's
+        # right edge) — the previous column's closing line is this one's
+        # opening line, exactly like bars sharing a line in print.
+        if flush:
+            out.append(f'<line x1="{width - 0.6:.2f}" y1="{line_y_top + pad_top - 4}" x2="{width - 0.6:.2f}" y2="{line_y_top + pad_top + grid_h + 4}" stroke="currentColor" stroke-width="1.1" opacity="0.6"/>')
+        else:
+            for x in bar_x_starts:
+                out.append(f'<line x1="{x:.2f}" y1="{line_y_top + pad_top - 4}" x2="{x:.2f}" y2="{line_y_top + pad_top + grid_h + 4}" stroke="currentColor" stroke-width="1.1" opacity="0.6"/>')
 
-        # Final double bar at end of last line
-        if line_idx == n_lines - 1:
-            x_end = bar_x_starts[-1]
+        # Final heavy double bar at end of last line
+        if end_double and line_idx == n_lines - 1:
+            x_end = width - 0.6 if flush else bar_x_starts[-1]
             out.append(f'<line x1="{x_end - 3:.2f}" y1="{line_y_top + pad_top - 4}" x2="{x_end - 3:.2f}" y2="{line_y_top + pad_top + grid_h + 4}" stroke="currentColor" stroke-width="1.4" opacity="0.7"/>')
 
         # Per-bar drawing

@@ -199,22 +199,30 @@ def render_tracks(tracks, start_bar=1):
         # compact; clamped so even the busiest solo bar fits a phone screen.
         densest = max((len(bars[bi]) for bars, _l, _lab in tracks
                        if bi < len(bars)), default=4)
-        col_w = max(170, min(350, densest * 17 + 32))
+        col_w = max(150, min(340, densest * 17 + 24))
         staves = []
         for vi, (bars, _labels, _label) in enumerate(tracks):
             if bi >= len(bars):
                 continue
+            # First stave reserves headroom for the bar number; the others sit
+            # tighter so one bar's guitars read as a unit. Staff lines run the
+            # SVG's full width and only the closing bar line is drawn — wrapped
+            # neighbours join into one continuous system (flush mode).
+            p_top = 36 if vi == 0 else 26
             staves.append(render_tab(
                 [bars[bi]],
                 bars_per_line=1,
                 width=col_w,
-                line_h=118,
+                line_h=p_top + 93,
                 beat_unit=4,
                 show_bar_numbers=(vi == 0),
                 start_bar=start_bar + bi,
                 note_seq_start=starts[vi],
                 show_tab_letters=False,
-                pad_lr=10,
+                pad_lr=6,
+                pad_top=p_top,
+                flush=True,
+                end_double=(bi == n_bars - 1),
             ))
             starts[vi] += len(bars[bi])
         cols_html.append(f'<div class="song-bar" style="width:{col_w}px">'

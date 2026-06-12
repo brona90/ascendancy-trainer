@@ -873,13 +873,22 @@ body {
     right: 0.5rem; font-size: 2rem;
   }
   /* Sticky action bar: stays in reach while the tab body scrolls under it.
-     margin-top:auto keeps it at the bottom even when the body is short. */
+     margin-top:auto keeps it at the bottom even when the body is short.
+     Five buttons must fit a 320px screen: tighter padding, allow wrapping. */
   .modal-actions {
     position: sticky; bottom: 0; margin-top: auto;
     padding: 0.8rem 0 0.3rem;
     background: linear-gradient(to top, var(--card) 72%, transparent);
+    flex-wrap: wrap; gap: 0.45rem;
   }
-  .modal-actions button { padding: 0.7rem 1rem; font-size: 1.02rem; }
+  .modal-actions .left, .modal-actions .right { gap: 0.4rem; }
+  .modal-actions button { padding: 0.65rem 0.7rem; font-size: 0.95rem; }
+  .modal-loop { min-width: 4.1rem; }
+  /* The floating metronome would sit exactly on the action bar's Together
+     button — lift it clear while a modal is open. */
+  #modal-backdrop.open ~ .metro {
+    bottom: calc(5.4rem + env(safe-area-inset-bottom));
+  }
   #modal-body .caption { font-size: 0.95rem; }
   #modal-body .chord-strip { gap: 1rem; }
   #modal-body .chord-strip svg.chord-box { width: 150px; max-width: 150px; }
@@ -997,19 +1006,26 @@ body {
   font-size: 0.78rem; font-style: italic; color: var(--card-ink-soft);
   margin: 0 0 0.5rem;
 }
-/* One flex column per bar, every guitar stacked inside it. Columns wrap to
-   the viewport: a desktop fits several bars per row, a phone gets one
-   full-width bar — NO horizontal scrolling anywhere on the song page. */
+/* One flex column per bar, every guitar stacked inside it. Columns sit FLUSH
+   (gap 0) — their staff lines run edge to edge and each draws only its
+   closing bar line, so a wrapped row reads as one continuous system. The
+   columns wrap to the viewport: a desktop fits several bars per row, a phone
+   gets one full-width bar — NO horizontal scrolling anywhere. */
 .song-bars {
   display: flex; flex-wrap: wrap;
-  column-gap: 10px; row-gap: 1.1rem;
+  column-gap: 0; row-gap: 2.1rem;
   align-items: flex-start;
 }
 .song-bar { flex: 0 1 auto; max-width: 100%; }
 /* Inside a column the .tab-scroll wrapper is inert (nothing scrolls) and the
    SVG sizes to its width attribute, shrinking only if the column is wider
-   than a small screen. */
-.song-bar .tab-scroll { overflow-x: visible; margin: 0; padding: 0; min-width: 0; background: none; }
+   than a small screen. The .card-scoped selectors must out-rank the generic
+   `.card .tab-scroll svg { min-width: 580px }` exercise-tab rule — that
+   one once inflated every column 3.4x. */
+.card .song-bar .tab-scroll, .song-bar .tab-scroll {
+  overflow-x: visible; margin: 0; padding: 0; min-width: 0; background: none;
+}
+.card .song-bar .tab-scroll svg.tab, .card .song-bar .tab-scroll svg.tab-rich,
 .song-bar svg.tab, .song-bar svg.tab-rich {
   min-width: 0; width: auto; max-width: 100%; height: auto; display: block;
 }
@@ -1512,7 +1528,10 @@ function cancelLoop() {
     const i = parseInt(m[1], 10);
     if (i >= 0 && i < cards.length) open(i);
   }
-  openFromHash();
+  // Deferred: this IIFE runs before `let currentPlayTimeout` (later in the
+  // script) is initialised, and open() reaches it via stopCard() — calling
+  // synchronously here throws a TDZ ReferenceError and kills #card=N links.
+  setTimeout(openFromHash, 0);
   window.addEventListener('hashchange', openFromHash);
 
   // Swipe gestures in modal. Touches that start inside a horizontally
